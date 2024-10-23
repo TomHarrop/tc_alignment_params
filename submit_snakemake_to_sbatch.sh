@@ -25,7 +25,7 @@ printf "TMPDIR: %s\n" "${TMPDIR}"
 
 snakemake \
     --profile profiles/petrichor_memdir \
-    --retries 3 \
+    --retries 0 \
     --keep-going \
     --cores 64 \
     --local-cores 2 \
