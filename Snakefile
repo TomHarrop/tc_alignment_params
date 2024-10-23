@@ -177,11 +177,7 @@ rule captus_align:
     container:
         captus
     shell:
-        "echo $TMPDIR ; "
-        "tmp_indir=$(mktemp -d) ; "
-        "echo $tmp_indir ; "
-        "exit 1 ; "
-        "tmp_outdir=$(mktemp -d) ; "
+        "tmp_indir=$(mktemp -d) && tmp_outdir=$(mktemp -d) ; "
         "cp -r {input.extraction_dir} ${{tmp_indir}}/align_input ; "
         "captus_assembly align "
         "--captus_extractions_dir ${{tmp_indir}}/align_input "
@@ -194,6 +190,7 @@ rule captus_align:
         "--markers {wildcards.marker} "
         "--format {wildcards.marker_format} "
         "&> {log} ; "
+        "ls -lh ${{tmp_outdir}} ; "
         "mv ${{tmp_outdir}} {output.outdir}"
 
 
