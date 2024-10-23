@@ -36,10 +36,10 @@ rerun-triggers:
 restart-times: 5
 shadow-prefix: ?tmpdir
 singularity-args: ?f"
-  -B $PWD,/scratch3,/datasets,$MEMDIR
+  -B $PWD,/scratch3,/datasets,$MEMDIR:/tmp
   --nv
   -H $(mktemp -d)
   --pwd $PWD
-  --env TMPDIR=$MEMDIR
+  --env TMPDIR=/tmp
   --containall --cleanenv --writable-tmpfs"
 use-singularity: true
