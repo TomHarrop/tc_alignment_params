@@ -1,0 +1,45 @@
+---
+__use_yte__: true
+__definitions__:
+  - from tempfile import mkdtemp
+  - tmpdir = mkdtemp()
+cluster: mkdir -p logs/{rule} &&
+  sbatch
+  {resources.partition_flag}
+  -A {resources.code}
+  --time={resources.time}
+  --cpus-per-task={threads}
+  --mem={resources.mem_mb}
+  --job-name={rule}-smk
+  --output=logs/{rule}/{rule}-%j.out
+  --parsable
+cluster-cancel: scancel
+cluster-cancel-nargs: 50
+cluster-status: status-sacct-robust.sh
+default-resources:
+  - mem_mb=8000
+  - time=10
+  - code=OD-228513
+  - partition_flag=""
+  - ?f"tmpdir=\"{tmpdir}\""
+cores: 32
+jobs: 150
+keep-going: true
+latency-wait: 60
+local-cores: 2
+max-jobs-per-second: 20
+max-status-checks-per-second: 20
+printshellcmds: true
+reason: true
+rerun-triggers:
+  - mtime
+restart-times: 5
+shadow-prefix: ?tmpdir
+singularity-args: ?f"
+  -B $PWD,/scratch3,/datasets
+  --nv
+  -H $(mktemp -d)
+  --pwd $PWD
+  --env TMPDIR=$MEMDIR
+  --containall --cleanenv --writable-tmpfs"
+use-singularity: true
