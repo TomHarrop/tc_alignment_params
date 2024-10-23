@@ -206,6 +206,6 @@ rule target:
             align_method=align_methods,
             clipkit_gap=clipkit_gaps,
             min_coverage=min_coverages,
-            marker=markers,
-            marker_format=formats,
+            marker=["NUC"],             # just for now
+            marker_format=["NT"],       # ditto
         ),
