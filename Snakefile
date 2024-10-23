@@ -41,8 +41,8 @@ align_methods = [
     "muscle_align",
     "muscle_super5",
 ]
-clipkit_gaps = np.arange(0, 1, 0.1)
-min_coverages = np.arange(0, 1, 0.1)
+clipkit_gaps = np.arange(0, 1, 0.2)
+min_coverages = np.arange(0, 1, 0.2)
 markers = ["NUC", "PTD", "MIT", "DNA", "CLR", "ALL"]
 formats = ["AA", "NT", "GE", "GF", "MA", "MF", "ALL"]
 
@@ -170,7 +170,7 @@ rule captus_align:
             "align",
             param_string + ".txt",
         )
-    threads: lambda wildcards, attempt: 16 * attempt
+    threads: lambda wildcards, attempt: 32 * attempt
     resources:
         time=lambda wildcards, attempt: 120 * attempt,
         mem_mb=lambda wildcards, attempt: int(16e3 * attempt),

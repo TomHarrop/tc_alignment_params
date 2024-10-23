@@ -29,4 +29,4 @@ snakemake \
     --keep-going \
     --cores 64 \
     --local-cores 2 \
-    output/010_captus-align/NUC.NT.mafft_auto.gap0.0.cov0.0
+    output/010_captus-align/NUC.NT.muscle_align.gap0.2.cov0.8
