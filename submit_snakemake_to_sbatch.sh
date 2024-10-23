@@ -24,8 +24,9 @@ printf "MEMDIR: %s\n" "${MEMDIR}"
 printf "TMPDIR: %s\n" "${TMPDIR}"
 
 snakemake \
-	--profile petrichor_tmp \
-	--retries 3 \
-	--keep-going \
-	--cores 64 \
-	--local-cores 2
+    --profile petrichor_tmp \
+    --retries 3 \
+    --keep-going \
+    --cores 64 \
+    --local-cores 2 \
+    output/030_iqtree/mafft_auto.gap0.0.cov0.0/iqtree_files.tar
