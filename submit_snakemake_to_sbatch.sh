@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=alignparams
-#SBATCH --time=7-00
+#SBATCH --time=0-01
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8g

@@ -36,7 +36,7 @@ rerun-triggers:
 restart-times: 5
 shadow-prefix: ?tmpdir
 singularity-args: ?f"
-  -B $PWD,/scratch3,/datasets
+  -B $PWD,/scratch3,/datasets,$MEMDIR
   --nv
   -H $(mktemp -d)
   --pwd $PWD
