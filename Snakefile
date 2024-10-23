@@ -177,6 +177,7 @@ rule captus_align:
     container:
         captus
     shell:
+        "echo $TMPDIR ; "
         "tmp_indir=$(mktemp -d) ; "
         "echo $tmp_indir ; "
         "exit 1 ; "
