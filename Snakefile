@@ -174,15 +174,17 @@ rule captus_align:
     resources:
         time=lambda wildcards, attempt: 120 * attempt,
         mem_mb=lambda wildcards, attempt: int(16e3 * attempt),
-    shadow:
-        "minimal"
     container:
         captus
     shell:
-        "cp -r {input.extraction_dir} ./align_input ; "
+        "tmp_indir=$(mktemp -d) ; "
+        "echo $tmp_indir ; "
+        "exit 1 ;"
+        "tmp_outdir=$(mktemp -d) ; "
+        "cp -r {input.extraction_dir} ${{tmp_indir}}/align_input ; "
         "captus_assembly align "
-        "--captus_extractions_dir ./align_input/ "
-        "--out {output.outdir} "
+        "--captus_extractions_dir ${{tmp_indir}}/align_input "
+        "--out ${{tmp_outdir}} "
         '--ram "$(( {resources.mem_mb}/1000 ))" '
         "--threads {threads} "
         "--align_method {wildcards.align_method} "
@@ -190,7 +192,9 @@ rule captus_align:
         "--min_coverage {wildcards.min_coverage} "
         "--markers {wildcards.marker} "
         "--format {wildcards.marker_format} "
-        "&> {log}"
+        "&> {log} ; "
+        "mv ${{tmp_outdir}} {output.outdir}"
+
 
 
 ###########
@@ -208,4 +212,4 @@ rule target:
             min_coverage=min_coverages,
             marker=["NUC"],             # just for now
             marker_format=["NT"],       # ditto
-        ),
+        )[0],

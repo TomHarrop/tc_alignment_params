@@ -24,8 +24,9 @@ printf "MEMDIR: %s\n" "${MEMDIR}"
 printf "TMPDIR: %s\n" "${TMPDIR}"
 
 snakemake \
-    --profile petrichor_tmp \
+    --profile profiles/petrichor_memdir \
     --retries 3 \
     --keep-going \
     --cores 64 \
-    --local-cores 2 
+    --local-cores 2 \
+    output/010_captus-align/NUC.NT.mafft_auto.gap0.0.cov0.0
