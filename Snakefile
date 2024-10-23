@@ -179,7 +179,7 @@ rule captus_align:
     shell:
         "tmp_indir=$(mktemp -d) ; "
         "echo $tmp_indir ; "
-        "exit 1 ;"
+        "exit 1 ; "
         "tmp_outdir=$(mktemp -d) ; "
         "cp -r {input.extraction_dir} ${{tmp_indir}}/align_input ; "
         "captus_assembly align "
