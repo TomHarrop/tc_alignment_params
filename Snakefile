@@ -43,6 +43,16 @@ align_methods = [
 ]
 clipkit_gaps = np.arange(0, 1, 0.1)
 min_coverages = np.arange(0, 1, 0.1)
+markers = ["NUC", "PTD", "MIT", "DNA", "CLR", "ALL"]
+formats = ["AA", "NT", "GE", "GF", "MA", "MF", "ALL"]
+
+param_string = (
+    "{marker}."
+    "{marker_format}."
+    "{align_method}."
+    "gap{clipkit_gap}."
+    "cov{min_coverage}"
+)
 
 # containers
 captus = "docker://quay.io/biocontainers/captus:1.0.1--pyhdfd78af_2"
@@ -62,6 +72,8 @@ wildcard_constraints:
     align_method="|".join(align_methods),
     clipkit_gap="|".join(map(str, clipkit_gaps)),
     min_coverage="|".join(map(str, min_coverages)),
+    marker="|".join(markers),
+    marker_format="|".join(formats),
 
 
 module iqtree:
@@ -72,13 +84,13 @@ module iqtree:
             "alignment_directory": Path(
                 outdir,
                 "020_trimal",
-                "{align_method}.gap{clipkit_gap}.cov{min_coverage}",
+                param_string,
                 "trimmed",
             ),
             "outdir": Path(
                 outdir,
                 "030_iqtree",
-                "{align_method}.gap{clipkit_gap}.cov{min_coverage}",
+                param_string,
             ),
         }
 
@@ -94,13 +106,13 @@ module trimal:
             "alignment_directory": Path(
                 outdir,
                 "020_trimal",
-                "{align_method}.gap{clipkit_gap}.cov{min_coverage}",
+                param_string,
                 "input",
             ),
             "outdir": Path(
                 outdir,
                 "020_trimal",
-                "{align_method}.gap{clipkit_gap}.cov{min_coverage}",
+                param_string,
             ),
         }
 
@@ -113,14 +125,14 @@ rule collect_captus_alignment_directories:
         alignment_directory=Path(
             outdir,
             "010_captus-align",
-            "{align_method}.gap{clipkit_gap}.cov{min_coverage}",
+            param_string,
         ),
     output:
         directory(
             Path(
                 outdir,
                 "020_trimal",
-                "{align_method}.gap{clipkit_gap}.cov{min_coverage}",
+                param_string,
                 "input",
             )
         ),
@@ -143,20 +155,20 @@ rule captus_align:
             Path(
                 outdir,
                 "010_captus-align",
-                "{align_method}.gap{clipkit_gap}.cov{min_coverage}",
+                param_string,
             )
         ),
     log:
         Path(
             logdir,
             "align",
-            "{align_method}.gap{clipkit_gap}.cov{min_coverage}.log",
+            param_string + ".log",
         ),
     benchmark:
         Path(
             benchdir,
             "align",
-            "{align_method}.gap{clipkit_gap}.cov{min_coverage}.log",
+            param_string + ".txt",
         )
     threads: lambda wildcards, attempt: 16 * attempt
     resources:
@@ -176,6 +188,8 @@ rule captus_align:
         "--align_method {wildcards.align_method} "
         "--clipkit_gaps {wildcards.clipkit_gap} "
         "--min_coverage {wildcards.min_coverage} "
+        "--markers {wildcards.marker} "
+        "--format {wildcards.marker_format} "
         "&> {log}"
 
 
@@ -192,4 +206,6 @@ rule target:
             align_method=align_methods,
             clipkit_gap=clipkit_gaps,
             min_coverage=min_coverages,
+            marker=markers,
+            marker_format=formats,
         ),
