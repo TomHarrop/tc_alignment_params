@@ -20,6 +20,15 @@ def get_module_snakefile(module, tag):
     )
 
 
+# just get the alphabetically last directory
+def find_alignment_directory(wildcards, input):
+    captus_directory = Path(input.alignment_directory)
+    parent_dirs = sorted(
+        set(x.parent for x in captus_directory.glob("**/*.fna"))
+    )
+    return parent_dirs[-1]
+
+
 ###########
 # GLOBALS #
 ###########
@@ -143,10 +152,7 @@ rule collect_captus_alignment_directories:
             )
         ),
     params:
-        alignment_directory=lambda wildcards, input: Path(
-            input.alignment_directory,
-            "04_alignments",
-        ),
+        alignment_directory=find_alignment_directory,
     shell:
         "ln -sf "
         "$( readlink -f {params.alignment_directory} ) "
