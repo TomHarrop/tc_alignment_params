@@ -71,6 +71,7 @@ param_string = (
 n_samples = 30
 
 # containers
+biopython = "docker://quay.io/biocontainers/biopython:1.78"
 captus = "docker://quay.io/biocontainers/captus:1.0.1--pyhdfd78af_2"
 
 # modules
@@ -100,9 +101,9 @@ module iqtree:
         {
             "alignment_directory": Path(
                 outdir,
-                "020_trimal",
+                "025_trimal-processed",
                 param_string,
-                "trimmed",
+                "kept",
             ),
             "outdir": Path(
                 outdir,
@@ -113,6 +114,37 @@ module iqtree:
 
 
 use rule * from iqtree as iqtree_*
+
+
+rule process_trimal_files:
+    input:
+        trimal_path=Path(
+            outdir,
+            "020_trimal",
+            param_string,
+            "trimmed",
+        ),
+    output:
+        kept_alignemnts=Path(
+            outdir,
+            "025_trimal-processed",
+            param_string,
+            "kept",
+        ),
+    params:
+        output_path=lambda wildcards, output: Path(
+            output.kept_alignemnts
+        ).parent,
+    log:
+        Path(
+            logdir,
+            "process_trimal_files",
+            param_string + ".log",
+        ),
+    container:
+        biopython
+    script:
+        "src/process_trimal_files.py"
 
 
 module trimal:
