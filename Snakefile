@@ -72,7 +72,7 @@ n_samples = 15
 captus = "docker://quay.io/biocontainers/captus:1.0.1--pyhdfd78af_2"
 
 # modules
-module_tag = "0.7.0"
+module_tag = "0.7.1"
 
 iqtree_snakefile = get_module_snakefile("iqtree", module_tag)
 trimal_snakefile = get_module_snakefile("trimal", module_tag)
