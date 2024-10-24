@@ -26,6 +26,8 @@ def find_alignment_directory(wildcards, input):
     parent_dirs = sorted(
         set(x.parent for x in captus_directory.glob("**/*.fna"))
     )
+    if not parent_dirs:
+        return [""]
     return parent_dirs[-1]
 
 
