@@ -125,11 +125,13 @@ rule process_trimal_files:
             "trimmed",
         ),
     output:
-        kept_alignemnts=Path(
-            outdir,
-            "025_trimal-processed",
-            param_string,
-            "kept",
+        kept_alignemnts=directory(
+            Path(
+                outdir,
+                "025_trimal-processed",
+                param_string,
+                "kept",
+            )
         ),
     params:
         output_path=lambda wildcards, output: Path(
