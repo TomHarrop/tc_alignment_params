@@ -28,5 +28,4 @@ snakemake \
     --retries 0 \
     --keep-going \
     --cores 64 \
-    --local-cores 2 \
-    output/030_iqtree/NUC.NT.muscle_align.gap0.2.cov0.8/tree.treefile
+    --local-cores 2
