@@ -66,7 +66,7 @@ param_string = (
 )
 
 # how many samples do we want? it's quite slow.
-n_samples = 15
+n_samples = 30
 
 # containers
 captus = "docker://quay.io/biocontainers/captus:1.0.1--pyhdfd78af_2"
