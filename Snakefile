@@ -2,7 +2,9 @@
 
 from functools import cache
 from pathlib import Path
+import shutil
 import numpy as np
+import random
 
 #############
 # FUNCTIONS #
@@ -54,6 +56,9 @@ param_string = (
     "cov{min_coverage}"
 )
 
+# how many samples do we want? it's quite slow.
+n_samples = 15
+
 # containers
 captus = "docker://quay.io/biocontainers/captus:1.0.1--pyhdfd78af_2"
 
@@ -62,6 +67,7 @@ module_tag = "0.7.0"
 
 iqtree_snakefile = get_module_snakefile("iqtree", module_tag)
 trimal_snakefile = get_module_snakefile("trimal", module_tag)
+
 
 #########
 # RULES #
@@ -149,7 +155,7 @@ rule collect_captus_alignment_directories:
 
 rule captus_align:
     input:
-        extraction_dir=captus_extractions_directory,
+        extraction_dir=Path(outdir, "005_selected-samples"),
     output:
         outdir=directory(
             Path(
@@ -178,7 +184,7 @@ rule captus_align:
         captus
     shell:
         "tmp_indir=$(mktemp -d) && tmp_outdir=$(mktemp -d) ; "
-        "cp -r {input.extraction_dir} ${{tmp_indir}}/align_input ; "
+        "cp -rL {input.extraction_dir} ${{tmp_indir}}/align_input ; "
         "captus_assembly align "
         "--captus_extractions_dir ${{tmp_indir}}/align_input "
         "--out ${{tmp_outdir}} "
@@ -190,9 +196,48 @@ rule captus_align:
         "--markers {wildcards.marker} "
         "--format {wildcards.marker_format} "
         "&> {log} ; "
-        "ls -lh ${{tmp_outdir}} ; "
         "mv ${{tmp_outdir}} {output.outdir}"
 
+
+# This is very slow. Subset the extractions to speed it up.
+# this is on scratch. it's probably better to copy once than symlink.
+rule set_up_selected_samples:
+    input:
+        extraction_dir=captus_extractions_directory,
+    output:
+        outdir=directory(Path(outdir, "005_selected-samples")),
+    params:
+        n_samples=n_samples,
+    run:
+        captus_extractions_directory = Path(input.extraction_dir)
+        n_samples = params.n_samples
+        Path(output.outdir).mkdir(exist_ok=True)
+
+        all_sample_folders = captus_extractions_directory.glob("*__captus-ext")
+        auxfiles = captus_extractions_directory.glob(
+            "captus-assembly_extract*"
+        )
+
+        all_sample_names = sorted(
+            set(
+                x.name.split("__")[0] for x in all_sample_folders if x.is_dir()
+            )
+        )
+
+        random.seed(14)
+        selected_samples = sorted(
+            set(random.sample(all_sample_names, n_samples))
+        )
+
+        for sample in selected_samples:
+            abs_from = Path(
+                input.extraction_dir, f"{sample}__captus-ext"
+            ).resolve()
+            abs_to = Path(output.outdir, f"{sample}__captus-ext").resolve()
+            shutil.copytree(abs_from, abs_to)
+
+        for auxfile in auxfiles:
+            shutil.copy(auxfile, output.outdir)
 
 
 ###########
@@ -208,6 +253,6 @@ rule target:
             align_method=align_methods,
             clipkit_gap=clipkit_gaps,
             min_coverage=min_coverages,
-            marker=["NUC"],             # just for now
-            marker_format=["NT"],       # ditto
-        )[0],
+            marker=["NUC"],
+            marker_format=["NT"],
+        ),
