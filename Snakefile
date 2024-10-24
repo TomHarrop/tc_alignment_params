@@ -54,8 +54,8 @@ align_methods = [
     "muscle_align",
     "muscle_super5",
 ]
-clipkit_gaps = np.arange(0, 1, 0.2)
-min_coverages = np.arange(0, 1, 0.2)
+clipkit_gaps = [round(float(x), 1) for x in np.arange(0, 1, 0.2)]
+min_coverages = [round(float(x), 1) for x in np.arange(0, 1, 0.2)]
 markers = ["NUC", "PTD", "MIT", "DNA", "CLR", "ALL"]
 formats = ["AA", "NT", "GE", "GF", "MA", "MF", "ALL"]
 
