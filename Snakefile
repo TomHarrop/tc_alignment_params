@@ -199,13 +199,7 @@ rule captus_align:
     input:
         extraction_dir=Path(outdir, "005_selected-samples"),
     output:
-        outdir=directory(
-            Path(
-                outdir,
-                "010_captus-align",
-                param_string,
-            )
-        ),
+        tarfile=Path(outdir, "010_captus-align", param_string + ".tar"),
     log:
         Path(
             logdir,
@@ -238,7 +232,7 @@ rule captus_align:
         "--markers {wildcards.marker} "
         "--format {wildcards.marker_format} "
         "&> {log} ; "
-        "mv ${{tmp_outdir}} {output.outdir}"
+        "tar -cvf {output.tarfile} --directory ${{tmp_outdir}} ."
 
 
 # This is very slow. Subset the extractions to speed it up.
@@ -291,7 +285,7 @@ rule target:
     default_target: True
     input:
         expand(
-            [str(x) for x in rules.iqtree_target.input],
+            [str(x) for x in rules.captus_align.output],
             align_method=align_methods,
             clipkit_gap=clipkit_gaps,
             min_coverage=min_coverages,
