@@ -2,9 +2,10 @@
 
 from functools import cache
 from pathlib import Path
-import shutil
 import numpy as np
 import random
+import shutil
+import tarfile
 
 #############
 # FUNCTIONS #
@@ -22,12 +23,16 @@ def get_module_snakefile(module, tag):
 
 # just get the alphabetically last directory
 def find_alignment_directory(wildcards, input):
-    captus_directory = Path(input.alignment_directory)
-    parent_dirs = sorted(
-        set(x.parent for x in captus_directory.glob("**/*.fna"))
-    )
-    if not parent_dirs:
+    captus_tarfile = Path(input.tarfile)
+    if not captus_tarfile.exists():
         return [""]
+    with tarfile.open(captus_tarfile, "r") as tar:
+        fasta_files = [
+            Path(x.name)
+            for x in tar.getmembers()
+            if x.isfile() and x.name.endswith(".fna")
+        ]
+    parent_dirs = sorted(set(x.parent for x in fasta_files))
     return parent_dirs[-1]
 
 
@@ -73,6 +78,7 @@ n_samples = 30
 # containers
 biopython = "docker://quay.io/biocontainers/biopython:1.78"
 captus = "docker://quay.io/biocontainers/captus:1.0.1--pyhdfd78af_2"
+trimal = "docker://quay.io/biocontainers/trimal:1.5.0--h4ac6f70_0"
 
 # modules
 module_tag = "0.7.1"
@@ -149,50 +155,49 @@ rule process_trimal_files:
         "src/process_trimal_files.py"
 
 
-module trimal:
-    snakefile:
-        trimal_snakefile
-    config:
-        {
-            "alignment_directory": Path(
-                outdir,
-                "020_trimal",
-                param_string,
-                "input",
-            ),
-            "outdir": Path(
-                outdir,
-                "020_trimal",
-                param_string,
-            ),
-        }
-
-
-use rule * from trimal as trimal_*
-
-
-rule collect_captus_alignment_directories:
+rule trimal:
     input:
-        alignment_directory=Path(
-            outdir,
-            "010_captus-align",
-            param_string,
-        ),
+        tarfile=Path(outdir, "010_captus-align", param_string + ".tar"),
     output:
-        directory(
-            Path(
-                outdir,
-                "020_trimal",
-                param_string,
-                "input",
-            )
-        ),
+        tarfile=Path(outdir, "020_trimal", param_string, "trimal.tar"),
+        stats=Path(outdir, "020_trimal", param_string, "trimal.stats.tar"),
+        htmlout=Path(outdir, "020_trimal", param_string, "trimal.htmlout.tar"),
     params:
         alignment_directory=find_alignment_directory,
+    log:
+        Path(
+            logdir,
+            "trimal",
+            param_string + ".log",
+        ),
+    threads: 1
+    container:
+        trimal
+    shadow:
+        "minimal"
     shell:
-        "ln -sf "
-        "$( readlink -f {params.alignment_directory} ) "
-        "$( readlink -f {output} )"
+        "tar -xf {input.tarfile} "
+        "./{params.alignment_directory} && "
+        "mkdir trimmed stats htmlout && "
+        "for input in {params.alignment_directory}/*.fna ; do "
+        "output=$(basename ${{input}}) ; "
+        "trimal "
+        "-in ${{input}} "
+        "-out trimmed/${{output}} "
+        "-automated1 "
+        "-htmlout htmlout/${{output}}.html "
+        "-sgc "
+        "-sgt "
+        "-sident "
+        "-soverlap "
+        "-ssc "
+        "-sst "
+        "> stats/${{output}}.stats "
+        "2>> {log} ; "
+        "done && "
+        "tar -cf {output.tarfile} --directory trimmed . && "
+        "tar -cf {output.stats} --directory stats . && "
+        "tar -cf {output.htmlout} --directory htmlout ."
 
 
 rule captus_align:

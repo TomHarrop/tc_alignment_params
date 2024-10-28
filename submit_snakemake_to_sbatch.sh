@@ -30,4 +30,4 @@ snakemake \
     --rerun-incomplete \
     --cores 64 \
     --local-cores 2 \
-    output/010_captus-align/NUC.NT.muscle_align.gap0.2.cov0.8.tar
+    output/020_trimal/NUC.NT.muscle_align.gap0.2.cov0.8/trimal.tar
