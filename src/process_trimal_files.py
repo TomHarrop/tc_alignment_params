@@ -4,6 +4,8 @@ from Bio import AlignIO
 from pathlib import Path
 from snakemake import logger
 import logging
+import tarfile
+import tempfile
 
 
 def check_for_informative_sites(trimal_file):
@@ -24,34 +26,43 @@ def check_for_informative_sites(trimal_file):
 
 
 def main():
+    trimal_path = Path(tempfile.mkdtemp())
+
+    with tarfile.open(trimal_tarfile, "r") as tar:
+        tar.extractall(trimal_path)
+
     trimal_files = sorted(
-        set(x for x in trimal_path.glob("*.fasta") if not x.name.startswith("."))
+        set(x for x in trimal_path.glob("*.fna") if not x.name.startswith("."))
     )
 
-    Path(output_path, "kept").mkdir(parents=True, exist_ok=True)
-    Path(output_path, "discarded").mkdir(parents=True, exist_ok=True)
-    Path(output_path, "empty").mkdir(parents=True, exist_ok=True)
+    # open the tarfiles for writing
+    kept_tar = tarfile.open(kept_tarfile, "w")
+    discarded_tar = tarfile.open(discarded_tarfile, "w")
+    empty_tar = tarfile.open(empty_tarfile, "w")
 
     for trimal_file in trimal_files:
         try:
             alignment, informative_sites = check_for_informative_sites(trimal_file)
         except ValueError:
             # this is an empty file
-            output_file = Path(output_path, "empty", trimal_file.name)
-            output_file.touch()
+            empty_tar.add(trimal_file, arcname=trimal_file.name)
             continue
         if informative_sites:
-            output_file = Path(output_path, "kept", trimal_file.name)
+            kept_tar.add(trimal_file, arcname=trimal_file.name)
         else:
-            output_file = Path(output_path, "discarded", trimal_file.name)
-        with open(output_file, "w") as f:
-            AlignIO.write(alignment, f, "fasta")
+            discarded_tar.add(trimal_file, arcname=trimal_file.name)
+
+    kept_tar.close()
+    discarded_tar.close()
+    empty_tar.close()
 
 
 if __name__ == "__main__":
 
-    trimal_path = Path(snakemake.input["trimal_path"])
-    output_path = Path(snakemake.params["output_path"])
+    trimal_tarfile = Path(snakemake.input["tarfile"])
+    kept_tarfile = Path(snakemake.output["kept"])
+    discarded_tarfile = Path(snakemake.output["discarded"])
+    empty_tarfile = Path(snakemake.output["empty"])
 
     logfile = Path(snakemake.log[0])
     file_handler = logging.FileHandler(logfile)

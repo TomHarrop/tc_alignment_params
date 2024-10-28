@@ -107,9 +107,8 @@ module iqtree:
         {
             "alignment_directory": Path(
                 outdir,
-                "025_trimal-processed",
+                "027_iqtree-input",
                 param_string,
-                "kept",
             ),
             "outdir": Path(
                 outdir,
@@ -122,27 +121,38 @@ module iqtree:
 use rule * from iqtree as iqtree_*
 
 
-rule process_trimal_files:
+rule setup_iqtree_input:
     input:
-        trimal_path=Path(
-            outdir,
-            "020_trimal",
-            param_string,
-            "trimmed",
-        ),
+        tarfile=Path(outdir, "025_trimal-processed", param_string, "kept.tar"),
     output:
-        kept_alignemnts=directory(
-            Path(
-                outdir,
-                "025_trimal-processed",
-                param_string,
-                "kept",
+        outdir=temp(
+            directory(
+                Path(
+                    outdir,
+                    "027_iqtree-input",
+                    param_string,
+                )
             )
         ),
-    params:
-        output_path=lambda wildcards, output: Path(
-            output.kept_alignemnts
-        ).parent,
+    container:
+        trimal
+    shadow:
+        "minimal"
+    shell:
+        "tmpdir=$(mktemp -d) && "
+        "tar -xf {input.tarfile} -C ${{tmpdir}} && "
+        "mv ${{tmpdir}} {output.outdir}"
+
+
+rule process_trimal_files:
+    input:
+        tarfile=Path(outdir, "020_trimal", param_string, "trimal.tar"),
+    output:
+        kept=Path(outdir, "025_trimal-processed", param_string, "kept.tar"),
+        discarded=Path(
+            outdir, "025_trimal-processed", param_string, "discarded.tar"
+        ),
+        empty=Path(outdir, "025_trimal-processed", param_string, "empty.tar"),
     log:
         Path(
             logdir,
@@ -290,7 +300,7 @@ rule target:
     default_target: True
     input:
         expand(
-            [str(x) for x in rules.captus_align.output],
+            [str(x) for x in rules.trimal.output],
             align_method=align_methods,
             clipkit_gap=clipkit_gaps,
             min_coverage=min_coverages,

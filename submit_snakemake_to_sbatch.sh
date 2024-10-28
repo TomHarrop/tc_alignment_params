@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #SBATCH --job-name=alignparams
-#SBATCH --time=7-00
+#SBATCH --time=0-02
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
-#SBATCH --mem=16g
+#SBATCH --mem=8g
 #SBATCH --output=sm.slurm.out
 #SBATCH --error=sm.slurm.err
 #SBATCH --partition=io
@@ -30,4 +30,4 @@ snakemake \
     --rerun-incomplete \
     --cores 64 \
     --local-cores 2 \
-    output/020_trimal/NUC.NT.muscle_align.gap0.2.cov0.8/trimal.tar
+    output/030_iqtree/NUC.NT.muscle_align.gap0.2.cov0.8/iqtree_files.tar
