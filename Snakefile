@@ -121,6 +121,13 @@ module iqtree:
 use rule * from iqtree as iqtree_*
 
 
+use rule iqtree from iqtree as iqtree_iqtree with:
+    resources:
+        mem_mb=lambda wildcards, attempt: int(32e3 * attempt),
+        time=lambda wildcards, attempt: int(60 * attempt),
+    threads: 48
+
+
 rule setup_iqtree_input:
     input:
         tarfile=Path(outdir, "025_trimal-processed", param_string, "kept.tar"),
@@ -159,6 +166,8 @@ rule process_trimal_files:
             "process_trimal_files",
             param_string + ".log",
         ),
+    resources:
+        time=lambda wildcards, attempt: 10 * attempt,
     container:
         biopython
     script:
@@ -181,6 +190,8 @@ rule trimal:
             param_string + ".log",
         ),
     threads: 1
+    resources:
+        time=lambda wildcards, attempt: 10 * attempt,
     container:
         trimal
     shadow:
@@ -300,7 +311,7 @@ rule target:
     default_target: True
     input:
         expand(
-            [str(x) for x in rules.trimal.output],
+            [str(x) for x in rules.iqtree_target.input],
             align_method=align_methods,
             clipkit_gap=clipkit_gaps,
             min_coverage=min_coverages,
