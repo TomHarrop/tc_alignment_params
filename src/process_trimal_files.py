@@ -11,8 +11,8 @@ import tempfile
 def check_for_informative_sites(trimal_file):
     with open(trimal_file, "r") as f:
         alignment = AlignIO.read(f, "fasta")
-
-    substitutions = alignment.substitutions.select("ACTG")
+    alphabet = alignment.substitutions.alphabet
+    substitutions = alignment.substitutions.select(alphabet)
 
     informative_sites = False
     for i, row in enumerate(substitutions):
@@ -55,6 +55,14 @@ def main():
     kept_tar.close()
     discarded_tar.close()
     empty_tar.close()
+
+
+# testing
+# trimal_tarfile = Path("test", "trimal.tar")
+# kept_tarfile = Path("test", "kept.tar")
+# discarded_tarfile = Path("test", "discarded.tar")
+# empty_tarfile = Path("test", "empty.tar")
+# main()
 
 
 if __name__ == "__main__":
