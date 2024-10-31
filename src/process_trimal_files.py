@@ -4,9 +4,10 @@ from Bio import AlignIO
 from pathlib import Path
 from snakemake import logger
 import logging
+import multiprocessing as mp
+import shutil
 import tarfile
 import tempfile
-
 
 def check_for_informative_sites(trimal_file):
     with open(trimal_file, "r") as f:
@@ -25,44 +26,103 @@ def check_for_informative_sites(trimal_file):
     return alignment, informative_sites
 
 
-def main():
-    trimal_path = Path(tempfile.mkdtemp())
+def write_to_tarfile(queue, output_tarfile):
+    i = 0
+    logger.debug(f"This is the queue for {queue}, writing to {output_tarfile}")
+    with tarfile.open(output_tarfile, "w") as tar:
+        while True:
+            item = queue.get()
+            logger.debug(f"Got {item}")
+            if item is None:
+                logger.info(f"Wrote {i} alignments to {output_tarfile}")
+                break
+            tar.add(item, arcname=item.name)
+            i += 1
 
+
+def process_trimal_file(trimal_file, write_queues):
+    try:
+        alignment, informative_sites = check_for_informative_sites(trimal_file)
+        if informative_sites:
+            write_queues["kept"].put(trimal_file)
+        else:
+            write_queues["discarded"].put(trimal_file)
+    except ValueError:
+        # this is an empty file
+        write_queues["empty"].put(trimal_file)
+
+
+def main():
+    output_streams = ["kept", "discarded", "empty"]
+
+    # set up pool
+    logger.info(f"Processing trimal output with {threads} threads")
+    pool = mp.Pool(threads)
+
+    # set up listeners
+    manager = mp.Manager()
+    write_queues = {k: manager.Queue() for k in output_streams}
+
+    temp_tarfiles = {k: Path(tempfile.mktemp(suffix=".tar")) for k in output_streams}
+
+    for k, v in temp_tarfiles.items():
+        logger.info(f"Writing {k} alignments to {v}")
+
+    watchers = {
+        k: pool.apply_async(write_to_tarfile, args=(write_queues[k], temp_tarfiles[k]))
+        for k in output_streams
+    }
+    logger.info(watchers)
+
+    trimal_path = Path(tempfile.mkdtemp())
+    logger.info(f"Extracting trimal files to {trimal_path}")
+
+    logger.info("Extracting input tarfile")
     with tarfile.open(trimal_tarfile, "r") as tar:
         tar.extractall(trimal_path)
 
+    logger.info(f"Reading alignment files from {trimal_path}")
     trimal_files = sorted(
         set(x for x in trimal_path.glob("*.fna") if not x.name.startswith("."))
     )
+    logger.info(f"Found {len(trimal_files)} alignment files")
 
-    # open the tarfiles for writing
-    kept_tar = tarfile.open(kept_tarfile, "w")
-    discarded_tar = tarfile.open(discarded_tarfile, "w")
-    empty_tar = tarfile.open(empty_tarfile, "w")
-
+    logger.info("Processing alignment files")
+    jobs = []
     for trimal_file in trimal_files:
-        try:
-            alignment, informative_sites = check_for_informative_sites(trimal_file)
-        except ValueError:
-            # this is an empty file
-            empty_tar.add(trimal_file, arcname=trimal_file.name)
-            continue
-        if informative_sites:
-            kept_tar.add(trimal_file, arcname=trimal_file.name)
-        else:
-            discarded_tar.add(trimal_file, arcname=trimal_file.name)
+        job = pool.apply_async(process_trimal_file, args=(trimal_file, write_queues))
+        jobs.append(job)
 
-    kept_tar.close()
-    discarded_tar.close()
-    empty_tar.close()
+    logger.info(f"Queued {len(jobs)} jobs")
+
+    for job in jobs:
+        job.get()
+
+    logger.info("All jobs finished")
+
+    # close the listeners
+    logger.info("Closing write queues")
+    for k, v in write_queues.items():
+        v.put(None)
+
+    logger.info("Closing pools")
+    pool.close()
+    pool.join()
+
+    # move the temp tarfiles to the final tarfiles
+    logger.info("Writing output tarfiles")
+    shutil.move(temp_tarfiles["kept"], kept_tarfile)
+    shutil.move(temp_tarfiles["discarded"], discarded_tarfile)
+    shutil.move(temp_tarfiles["empty"], empty_tarfile)
 
 
 # testing
-# trimal_tarfile = Path("test", "trimal.tar")
-# kept_tarfile = Path("test", "kept.tar")
-# discarded_tarfile = Path("test", "discarded.tar")
-# empty_tarfile = Path("test", "empty.tar")
-# main()
+trimal_tarfile = Path("test", "trimal.tar")
+kept_tarfile = Path("test", "kept.tar")
+discarded_tarfile = Path("test", "discarded.tar")
+empty_tarfile = Path("test", "empty.tar")
+threads = 11
+main()
 
 
 if __name__ == "__main__":
