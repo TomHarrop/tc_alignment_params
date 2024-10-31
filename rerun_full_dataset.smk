@@ -159,7 +159,7 @@ rule process_trimal_files:
             param_string + ".log",
         ),
     resources:
-        time=lambda wildcards, attempt: 10 * attempt,
+        time=lambda wildcards, attempt: 60 * attempt,
     container:
         "docker://quay.io/biocontainers/biopython:1.81"
     script:
