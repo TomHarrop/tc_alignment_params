@@ -5,8 +5,8 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=16g
-#SBATCH --output=sm.slurm.out
-#SBATCH --error=sm.slurm.err
+#SBATCH --output=full_run.slurm.out
+#SBATCH --error=full_run.slurm.err
 #SBATCH --partition=io
 
 # Dependencies

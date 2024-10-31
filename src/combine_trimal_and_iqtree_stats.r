@@ -126,20 +126,17 @@ all_metrics_with_params[
     naive_tree_score := ((2 * MedianGapScore_median) + normalised_sum_of_informative_sites - (2 * normalised_total_tree_length)) / 5
 ]
 
-all_metrics_with_params[which.max(naive_tree_score)]
-
-all_metrics_with_params[, MedianGapScore_median]
 
 # the default results
 default_results <- all_metrics_with_params[param_string == default_param_string]
-
+best_results <- all_metrics_with_params[which.max(naive_tree_score)]
 
 # plots
 gp <- ggplot(
-    all_metrics_with_params[param_string != default_param_string],
+    all_metrics_with_params,
     aes(
         x = MedianGapScore_median,
-        y = sum_Infor,
+        y = normalised_sum_of_informative_sites,
         colour = gap,
         shape = cov
     )
@@ -148,7 +145,30 @@ gp <- ggplot(
     scale_shape_binned() +
     facet_wrap(~align_method) +
     geom_point() +
-    geom_point(data = default_results, size = 10, colour = "black", shape = 19)
+    geom_point(
+        data = default_results,
+        colour = "black",
+        shape = 1,
+        size = 5,
+    ) +
+    geom_point(
+        data = best_results,
+        colour = "red",
+        shape = 1,
+        size = 5,
+    ) +
+    geom_vline(
+        xintercept = default_results$MedianGapScore_median,
+        colour = "black",
+        linetype = "dashed",
+        alpha = 0.5
+    ) +
+    geom_hline(
+        yintercept = default_results$normalised_sum_of_informative_sites,
+        colour = "black",
+        linetype = "dashed",
+        alpha = 0.5
+    )
 
 ggsave("test/total_informative_sites.pdf",
     gp,
@@ -177,6 +197,12 @@ gp2 <- ggplot(
         shape = 1,
         size = 5,
     ) +
+    geom_point(
+        data = best_results,
+        colour = "red",
+        shape = 1,
+        size = 5,
+    ) +
     geom_vline(
         xintercept = default_results$MedianGapScore_median,
         colour = "black",
@@ -198,8 +224,81 @@ ggsave("test/total_tree_length.pdf",
     device = cairo_pdf
 )
 
+gp3 <- ggplot(
+    all_metrics_with_params,
+    aes(
+        x = normalised_sum_of_informative_sites,
+        y = normalised_total_tree_length,
+        colour = gap,
+        shape = cov
+    )
+) +
+    scale_colour_viridis_b(breaks = bin_breaks) +
+    scale_shape_binned() +
+    facet_wrap(~align_method) +
+    geom_point(size = 4) +
+    geom_point(
+        data = default_results,
+        colour = "black",
+        shape = 1,
+        size = 6,
+    ) +
+    geom_point(
+        data = best_results,
+        colour = "red",
+        shape = 1,
+        size = 6,
+    ) +
+    geom_vline(
+        xintercept = default_results$normalised_sum_of_informative_sites,
+        colour = "black",
+        linetype = "dashed",
+        alpha = 0.5
+    ) +
+    geom_hline(
+        yintercept = default_results$normalised_total_tree_length,
+        colour = "black",
+        linetype = "dashed",
+        alpha = 0.5
+    )
 
-all_metrics_with_params[param_string == "NUC.NT.muscle_super5.gap0.8.cov0.8"]
-all_metrics_with_params[MedianGapScore_median == 1][
-    which.min(`Total tree length (sum of branch lengths)`)
-]
+
+gp3 <- ggplot(
+    all_metrics_with_params,
+    aes(
+        x = cov,
+        y = naive_tree_score,
+        colour = as.factor(gap),
+        group = as.factor(gap)
+    )
+) +
+    scale_colour_viridis_d() +
+    facet_wrap(~align_method) +
+    geom_point(shape = 16,size = 1, alpha = 0.8) +
+    geom_path() +
+    geom_point(
+        data = default_results,
+        colour = "black",
+        shape = 1,
+        size = 6,
+    ) +
+    geom_point(
+        data = best_results,
+        colour = "red",
+        shape = 1,
+        size = 6,
+    ) +
+    geom_hline(
+        yintercept = default_results$naive_tree_score,
+        colour = "black",
+        linetype = "dashed",
+        alpha = 0.5
+    )
+
+ggsave("test/naive_metric.pdf",
+    gp3,
+    width = 10,
+    height = 7.5,
+    units = "in",
+    device = cairo_pdf
+)
