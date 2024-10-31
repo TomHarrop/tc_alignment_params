@@ -213,8 +213,15 @@ rule process_trimal_files:
             "process_trimal_files",
             param_string + ".log",
         ),
+    benchmark:
+        Path(
+            benchdir,
+            "process_trimal_files",
+            param_string + ".txt",
+        )
+    threads: 24
     resources:
-        time=lambda wildcards, attempt: 10 * attempt,
+        time=lambda wildcards, attempt: 60 * attempt,
     container:
         biopython
     script:
