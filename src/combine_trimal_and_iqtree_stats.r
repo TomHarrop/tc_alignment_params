@@ -111,8 +111,6 @@ all_metrics_with_params <- merge(
     all = TRUE
 )
 
-
-
 # some sort of combined metric
 all_metrics_with_params[
     ,
