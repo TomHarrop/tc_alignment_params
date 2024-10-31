@@ -272,9 +272,11 @@ gp3 <- ggplot(
         group = as.factor(gap)
     )
 ) +
-    scale_colour_viridis_d() +
+    scale_colour_viridis_d(guide = guide_legend(title = "--clipkit_gaps")) +
     facet_wrap(~align_method) +
-    geom_point(shape = 16,size = 1, alpha = 0.8) +
+    xlab("--min_coverage") +
+    ylab("Naïve tree score") +
+    geom_point(shape = 16, size = 1, alpha = 0.8) +
     geom_path() +
     geom_point(
         data = default_results,
