@@ -171,7 +171,7 @@ use rule * from iqtree as iqtree_*
 use rule iqtree from iqtree as iqtree_iqtree with:
     resources:
         mem_mb=lambda wildcards, attempt: int(32e3 * attempt),
-        time=lambda wildcards, attempt: int(60 * attempt),
+        time=lambda wildcards, attempt: int(180 * attempt),
     threads: 48
 
 
