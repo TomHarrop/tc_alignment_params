@@ -3,9 +3,13 @@
 # TODO. This script parses the trimal stats output. It needs to go in the
 # trimal module.
 
+from pathlib import Path
+from snakemake import logger
+import logging
 import pandas as pd
 import statistics
-from pathlib import Path
+import tarfile
+import tempfile
 
 
 def read_trimal_file(file_path):
@@ -70,14 +74,46 @@ def summarise_gap_scores(df):
     return MedianGapScore, AverageGapScore
 
 
-trimal_log_dir = Path("output/020_trimal/NUC.NT.muscle_super5.gap0.8.cov0.4/logs")
-trimal_stats_files = trimal_log_dir.glob("trimal.*.stats.txt")
+def get_trimal_statsfiles(trimal_stats_tarfile):
+    trimal_stats_path = Path(tempfile.mkdtemp())
+    with tarfile.open(trimal_stats_tarfile, "r") as tar:
+        tar.extractall(trimal_stats_path)
 
-[print(file) for file in trimal_stats_files]
+    trimal_stats_files = sorted(
+        set(x for x in trimal_stats_path.glob("*.stats") if not x.name.startswith("."))
+    )
 
-summary_metrics = {}
-for file_path in trimal_stats_files:
-    id = file_path.name.split(".")[1]
-    summary_metrics[id] = read_trimal_file(file_path)
+    return trimal_stats_files
 
-summary_metrics_df = pd.DataFrame(summary_metrics).T
+
+def main():
+    trimal_stats_files = get_trimal_statsfiles(trimal_stats_tarfile)
+
+    summary_metrics = {}
+    for file_path in trimal_stats_files:
+        id = file_path.name.split(".")[0]
+        summary_metrics[id] = read_trimal_file(file_path)
+
+    summary_metrics_df = pd.DataFrame(summary_metrics).T
+    summary_metrics_df.to_csv(output_file, index=True, index_label="locus")
+
+
+# testing
+# trimal_stats_tarfile = Path("test", "trimal.stats.tar")
+# output_file = Path("test", "trimal_stats.csv")
+# main()
+
+if __name__ == "__main__":
+    trimal_stats_tarfile = Path(snakemake.input["stats_tarfile"])
+    output_file = Path(snakemake.output["trimal_stats"])
+
+    logfile = Path(snakemake.log[0])
+    file_handler = logging.FileHandler(logfile)
+    logger.logfile_handler = file_handler
+    logger.logger.addHandler(logger.logfile_handler)
+
+    try:
+        main()
+    except Exception as e:
+        logger.error(e)
+        raise e

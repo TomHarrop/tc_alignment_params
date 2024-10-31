@@ -36,6 +36,17 @@ def find_alignment_directory(wildcards, input):
     return parent_dirs[-1]
 
 
+def ruleio_expand(ruleio):
+    return expand(
+        [str(x) for x in ruleio],
+        align_method=align_methods,
+        clipkit_gap=clipkit_gaps,
+        min_coverage=min_coverages,
+        marker=["NUC"],
+        marker_format=["NT"],
+    )
+
+
 ###########
 # GLOBALS #
 ###########
@@ -76,8 +87,9 @@ param_string = (
 n_samples = 30
 
 # containers
-biopython = "docker://quay.io/biocontainers/biopython:1.78"
+biopython = "docker://quay.io/biocontainers/biopython:1.81"
 captus = "docker://quay.io/biocontainers/captus:1.0.1--pyhdfd78af_2"
+pandas = "docker://quay.io/biocontainers/pandas:2.2.1"
 trimal = "docker://quay.io/biocontainers/trimal:1.5.0--h4ac6f70_0"
 
 # modules
@@ -98,6 +110,41 @@ wildcard_constraints:
     min_coverage="|".join(map(str, min_coverages)),
     marker="|".join(markers),
     marker_format="|".join(formats),
+
+
+rule parse_iqtree_file:
+    input:
+        iqtree_file=Path(
+            outdir,
+            "030_iqtree",
+            param_string,
+            "tree.iqtree",
+        ),
+    output:
+        summary_metrics=Path(
+            outdir,
+            "033_iqtree-stats",
+            param_string,
+            "metrics.csv",
+        ),
+        site_data=Path(
+            outdir,
+            "033_iqtree-stats",
+            param_string,
+            "site_info.csv",
+        ),
+    log:
+        Path(
+            logdir,
+            "parse_iqtree_file",
+            param_string + ".log",
+        ),
+    resources:
+        time=lambda wildcards, attempt: 10 * attempt,
+    container:
+        pandas
+    script:
+        "src/parse_iqtree_file.py"
 
 
 module iqtree:
@@ -172,6 +219,29 @@ rule process_trimal_files:
         biopython
     script:
         "src/process_trimal_files.py"
+
+
+rule parse_trimal_stats:
+    input:
+        stats_tarfile=Path(
+            outdir, "020_trimal", param_string, "trimal.stats.tar"
+        ),
+    output:
+        trimal_stats=Path(
+            outdir, "023_trimal-stats", param_string, "stats.csv"
+        ),
+    log:
+        Path(
+            logdir,
+            "parse_trimal_stats",
+            param_string + ".log",
+        ),
+    resources:
+        time=lambda wildcards, attempt: 10 * attempt,
+    container:
+        pandas
+    script:
+        "src/parse_trimal_stats.py"
 
 
 rule trimal:
@@ -310,11 +380,6 @@ rule set_up_selected_samples:
 rule target:
     default_target: True
     input:
-        expand(
-            [str(x) for x in rules.iqtree_target.input],
-            align_method=align_methods,
-            clipkit_gap=clipkit_gaps,
-            min_coverage=min_coverages,
-            marker=["NUC"],
-            marker_format=["NT"],
-        ),
+        ruleio_expand(rules.iqtree_target.input),
+        ruleio_expand(rules.parse_iqtree_file.output),
+        ruleio_expand(rules.parse_trimal_stats.output),
