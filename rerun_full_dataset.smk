@@ -3,8 +3,6 @@
 from functools import cache
 from pathlib import Path
 import numpy as np
-import random
-import shutil
 import tarfile
 
 #############
@@ -46,8 +44,6 @@ outdir = Path("output", "090_rerun-full-dataset")
 logdir = Path(outdir, "logs")
 benchdir = Path(logdir, "benchmarks")
 
-captus_extractions_directory = Path(data, "03_extractions")
-
 # Params
 align_methods = [
     "mafft_auto",
@@ -59,10 +55,7 @@ align_methods = [
     "muscle_align",
     "muscle_super5",
 ]
-clipkit_gaps = [round(float(x), 1) for x in np.arange(0, 1, 0.1)]
-min_coverages = [round(float(x), 1) for x in np.arange(0, 1, 0.1)]
 markers = ["NUC", "PTD", "MIT", "DNA", "CLR", "ALL"]
-formats = ["AA", "NT", "GE", "GF", "MA", "MF", "ALL"]
 
 param_string = (
     "{marker}."
@@ -73,8 +66,6 @@ param_string = (
 )
 
 # containers
-biopython = "docker://quay.io/biocontainers/biopython:1.81"
-captus = "docker://quay.io/biocontainers/captus:1.0.1--pyhdfd78af_2"
 trimal = "docker://quay.io/biocontainers/trimal:1.5.0--h4ac6f70_0"
 
 # modules
@@ -91,10 +82,14 @@ trimal_snakefile = get_module_snakefile("trimal", module_tag)
 
 wildcard_constraints:
     align_method="|".join(align_methods),
-    clipkit_gap="|".join(map(str, clipkit_gaps)),
-    min_coverage="|".join(map(str, min_coverages)),
+    clipkit_gap="|".join(
+        map(str, [round(float(x), 1) for x in np.arange(0, 1, 0.1)])
+    ),
+    min_coverage="|".join(
+        map(str, [round(float(x), 1) for x in np.arange(0, 1, 0.1)])
+    ),
     marker="|".join(markers),
-    marker_format="|".join(formats),
+    marker_format="|".join(["AA", "NT", "GE", "GF", "MA", "MF", "ALL"]),
 
 
 module iqtree:
@@ -166,7 +161,7 @@ rule process_trimal_files:
     resources:
         time=lambda wildcards, attempt: 10 * attempt,
     container:
-        biopython
+        "docker://quay.io/biocontainers/biopython:1.81"
     script:
         "src/process_trimal_files.py"
 
@@ -220,7 +215,7 @@ rule trimal:
 
 rule captus_align:
     input:
-        extraction_dir=captus_extractions_directory,
+        extraction_dir=Path(data, "03_extractions"),
     output:
         tarfile=Path(outdir, "010_captus-align", param_string + ".tar"),
     log:
@@ -240,7 +235,7 @@ rule captus_align:
         time=lambda wildcards, attempt: 240 * attempt,
         mem_mb=lambda wildcards, attempt: int(16e3 * attempt),
     container:
-        captus
+        "docker://quay.io/biocontainers/captus:1.0.1--pyhdfd78af_2"
     shell:
         "tmp_indir=$(mktemp -d) && tmp_outdir=$(mktemp -d) ; "
         "cp -rL {input.extraction_dir} ${{tmp_indir}}/align_input ; "
