@@ -29,4 +29,4 @@ snakemake \
     --keep-going \
     --rerun-incomplete \
     --cores 64 \
-    --local-cores
+    --local-cores 2
