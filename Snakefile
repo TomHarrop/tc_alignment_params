@@ -44,6 +44,7 @@ def ruleio_expand(ruleio):
         min_coverage=min_coverages,
         marker=["NUC"],
         marker_format=["NT"],
+        sample_wscore_cutoff=sample_wscore_cutoffs,
     )
 
 
@@ -70,17 +71,21 @@ align_methods = [
     "muscle_align",
     "muscle_super5",
 ]
-clipkit_gaps = [round(float(x), 1) for x in np.arange(0, 1, 0.1)]
-min_coverages = [round(float(x), 1) for x in np.arange(0, 1, 0.1)]
+clipkit_gaps = [round(float(x), 1) for x in np.linspace(0, 1, 10)]
+min_coverages = [round(float(x), 1) for x in np.linspace(0, 1, 10)]
 markers = ["NUC", "PTD", "MIT", "DNA", "CLR", "ALL"]
 formats = ["AA", "NT", "GE", "GF", "MA", "MF", "ALL"]
+sample_wscore_cutoffs = [
+    round(float(x), 1) for x in np.linspace(0, 0.6, num=4)
+]
 
 param_string = (
     "{marker}."
     "{marker_format}."
     "{align_method}."
     "gap{clipkit_gap}."
-    "cov{min_coverage}"
+    "cov{min_coverage}."
+    "wscore{sample_wscore_cutoff}"
 )
 
 # how many samples do we want? it's quite slow.
@@ -90,6 +95,7 @@ n_samples = 30
 biopython = "docker://quay.io/biocontainers/biopython:1.81"
 captus = "docker://quay.io/biocontainers/captus:1.0.1--pyhdfd78af_2"
 pandas = "docker://quay.io/biocontainers/pandas:2.2.1"
+r = "docker://ghcr.io/tomharrop/r-containers:r2u_24.04_cv1"
 trimal = "docker://quay.io/biocontainers/trimal:1.5.0--h4ac6f70_0"
 
 # modules
@@ -110,6 +116,7 @@ wildcard_constraints:
     min_coverage="|".join(map(str, min_coverages)),
     marker="|".join(markers),
     marker_format="|".join(formats),
+    sample_wscore_cutoff="|".join(map(str, sample_wscore_cutoffs)),
 
 
 rule parse_iqtree_file:
@@ -301,6 +308,12 @@ rule trimal:
 rule captus_align:
     input:
         extraction_dir=Path(outdir, "005_selected-samples"),
+        discarded_samples=Path(
+            outdir,
+            "007_wscore-filtering",
+            "{marker}.wscore{sample_wscore_cutoff}",
+            "discarded_samples.txt",
+        ),
     output:
         tarfile=Path(outdir, "010_captus-align", param_string + ".tar"),
     log:
@@ -324,6 +337,11 @@ rule captus_align:
     shell:
         "tmp_indir=$(mktemp -d) && tmp_outdir=$(mktemp -d) ; "
         "cp -rL {input.extraction_dir} ${{tmp_indir}}/align_input ; "
+        "while read sample; do "
+        "if [ -d ${{tmp_indir}}/align_input/${{sample}}__captus-ext ]; then "
+        'rm -r "${{tmp_indir}}/align_input/${{sample}}__captus-ext" ; '
+        "fi ; "
+        "done < {input.discarded_samples} && "
         "captus_assembly align "
         "--captus_extractions_dir ${{tmp_indir}}/align_input "
         "--out ${{tmp_outdir}} "
@@ -336,6 +354,38 @@ rule captus_align:
         "--format {wildcards.marker_format} "
         "&> {log} ; "
         "tar -cvf {output.tarfile} --directory ${{tmp_outdir}} ."
+
+
+rule wscore_cutoffs:
+    input:
+        extraction_dir=Path(outdir, "005_selected-samples"),
+    output:
+        discarded_samples=Path(
+            outdir,
+            "007_wscore-filtering",
+            "{marker}.wscore{sample_wscore_cutoff}",
+            "discarded_samples.txt",
+        ),
+        discarded_loci=Path(
+            outdir,
+            "007_wscore-filtering",
+            "{marker}.wscore{sample_wscore_cutoff}",
+            "discarded_loci.txt",
+        ),
+    params:
+        stats_file=lambda wildcards, input: Path(
+            input.extraction_dir, "captus-assembly_extract.stats.tsv"
+        ),
+    log:
+        log=Path(
+            logdir,
+            "wscore_cutoffs",
+            "{marker}.wscore{sample_wscore_cutoff}" + ".log",
+        ),
+    container:
+        r
+    script:
+        "src/wscore_cutoffs.R"
 
 
 # This is very slow. Subset the extractions to speed it up.
