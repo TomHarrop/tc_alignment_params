@@ -14,8 +14,8 @@ if (exists("snakemake")) {
     locus_wscore_cutoff <- sample_wscore_cutoff
     this_marker_type <- snakemake@wildcards[["marker"]]
 } else {
-    locus_wscore_cutoff <- 0.25
-    sample_wscore_cutoff <- 0.25
+    locus_wscore_cutoff <- 0.0
+    sample_wscore_cutoff <- 0.0
     this_marker_type <- "NUC"
     stats_file <- "data/03_extractions/captus-assembly_extract.stats.tsv"
     discarded_samples_file <- "test/discarded_samples.csv"
@@ -36,8 +36,6 @@ discarded_samples <- stats[
     !sample_name %in% kept_samples,
     unique(sample_name)
 ]
-
-
 
 kept_loci <- stats[
     hit == 0 &

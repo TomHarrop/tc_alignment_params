@@ -75,6 +75,9 @@ clipkit_gaps = [round(float(x), 1) for x in np.linspace(0, 1, 10)]
 min_coverages = [round(float(x), 1) for x in np.linspace(0, 1, 10)]
 markers = ["NUC", "PTD", "MIT", "DNA", "CLR", "ALL"]
 formats = ["AA", "NT", "GE", "GF", "MA", "MF", "ALL"]
+# Note, even at wscore >= 0.0, some samples get discarded. This happens if no
+# markes of the correct type were assembled. It's correct to remove these
+# samples.
 sample_wscore_cutoffs = [
     round(float(x), 1) for x in np.linspace(0, 0.6, num=4)
 ]
@@ -226,9 +229,9 @@ rule process_trimal_files:
             "process_trimal_files",
             param_string + ".txt",
         )
-    threads: 24
+    threads: 12
     resources:
-        time=lambda wildcards, attempt: 60 * attempt,
+        time=lambda wildcards, attempt: 10 * attempt,
     container:
         biopython
     script:

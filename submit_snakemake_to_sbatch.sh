@@ -29,9 +29,4 @@ snakemake \
     --keep-going \
     --rerun-incomplete \
     --cores 64 \
-    --local-cores 2 \
-    output/030_iqtree/NUC.NT.mafft_auto.gap0.9.cov0.4.wscore0.4/iqtree_files.tar
-
-
-
-# NUC.NT.mafft_auto.gap0.9.cov0.4
+    --local-cores
