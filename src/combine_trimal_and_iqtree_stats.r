@@ -15,13 +15,15 @@ ParseParamString <- function(x) {
     split_string <- unlist(strsplit(x, ".", fixed = TRUE))
     gap <- sub("gap", "", paste(split_string[4:5], collapse = "."))
     cov <- sub("cov", "", paste(split_string[6:7], collapse = "."))
+    wscore <- sub("wscore", "", paste(split_string[8:9], collapse = "."))
     return(
         list(
             marker = split_string[1],
             marker_format = split_string[2],
             align_method = split_string[3],
             gap = as.numeric(gap),
-            cov = as.numeric(cov)
+            cov = as.numeric(cov),
+            wscore = as.numeric(wscore)
         )
     )
 }
@@ -50,7 +52,7 @@ ReadStatsFiles <- function(path, pattern) {
 # globals
 bin_breaks <- seq(0, 1, by = 0.1)
 
-default_param_string <- "NUC.NT.mafft_auto.gap0.9.cov0.4"
+default_param_string <- "NUC.NT.mafft_auto.gap0.9.cov0.4.wscore0.0"
 
 # read the trimal stats
 trimal_stats <- ReadStatsFiles(
@@ -123,145 +125,13 @@ all_metrics_with_params[
     naive_tree_score := ((2 * MedianGapScore_median) + normalised_sum_of_informative_sites - (2 * normalised_total_tree_length)) / 5
 ]
 
-
 # the default results
 default_results <- all_metrics_with_params[param_string == default_param_string]
 best_results <- all_metrics_with_params[which.max(naive_tree_score)]
 all_metrics_with_params[naive_tree_score == best_results$naive_tree_score]
 
 # plots
-gp <- ggplot(
-    all_metrics_with_params,
-    aes(
-        x = MedianGapScore_median,
-        y = normalised_sum_of_informative_sites,
-        colour = gap,
-        shape = cov
-    )
-) +
-    scale_colour_viridis_b(breaks = bin_breaks) +
-    scale_shape_binned() +
-    facet_wrap(~align_method) +
-    geom_point() +
-    geom_point(
-        data = default_results,
-        colour = "black",
-        shape = 1,
-        size = 5,
-    ) +
-    geom_point(
-        data = best_results,
-        colour = "red",
-        shape = 1,
-        size = 5,
-    ) +
-    geom_vline(
-        xintercept = default_results$MedianGapScore_median,
-        colour = "black",
-        linetype = "dashed",
-        alpha = 0.5
-    ) +
-    geom_hline(
-        yintercept = default_results$normalised_sum_of_informative_sites,
-        colour = "black",
-        linetype = "dashed",
-        alpha = 0.5
-    )
-
-ggsave("test/total_informative_sites.pdf",
-    gp,
-    width = 10,
-    height = 7.5,
-    units = "in",
-    device = cairo_pdf
-)
-
-gp2 <- ggplot(
-    all_metrics_with_params,
-    aes(
-        x = MedianGapScore_median,
-        y = normalised_total_tree_length,
-        colour = gap,
-        shape = cov
-    )
-) +
-    scale_colour_viridis_b(breaks = bin_breaks) +
-    scale_shape_binned() +
-    facet_wrap(~align_method) +
-    geom_point(size = 4) +
-    geom_point(
-        data = default_results,
-        colour = "black",
-        shape = 1,
-        size = 5,
-    ) +
-    geom_point(
-        data = best_results,
-        colour = "red",
-        shape = 1,
-        size = 5,
-    ) +
-    geom_vline(
-        xintercept = default_results$MedianGapScore_median,
-        colour = "black",
-        linetype = "dashed",
-        alpha = 0.5
-    ) +
-    geom_hline(
-        yintercept = default_results$normalised_total_tree_length,
-        colour = "black",
-        linetype = "dashed",
-        alpha = 0.5
-    )
-
-ggsave("test/total_tree_length.pdf",
-    gp2,
-    width = 10,
-    height = 7.5,
-    units = "in",
-    device = cairo_pdf
-)
-
-gp3 <- ggplot(
-    all_metrics_with_params,
-    aes(
-        x = normalised_sum_of_informative_sites,
-        y = normalised_total_tree_length,
-        colour = gap,
-        shape = cov
-    )
-) +
-    scale_colour_viridis_b(breaks = bin_breaks) +
-    scale_shape_binned() +
-    facet_wrap(~align_method) +
-    geom_point(size = 4) +
-    geom_point(
-        data = default_results,
-        colour = "black",
-        shape = 1,
-        size = 6,
-    ) +
-    geom_point(
-        data = best_results,
-        colour = "red",
-        shape = 1,
-        size = 6,
-    ) +
-    geom_vline(
-        xintercept = default_results$normalised_sum_of_informative_sites,
-        colour = "black",
-        linetype = "dashed",
-        alpha = 0.5
-    ) +
-    geom_hline(
-        yintercept = default_results$normalised_total_tree_length,
-        colour = "black",
-        linetype = "dashed",
-        alpha = 0.5
-    )
-
-
-gp3 <- ggplot(
+naive_tree_score_plot <- ggplot(
     all_metrics_with_params,
     aes(
         x = cov,
@@ -272,9 +142,8 @@ gp3 <- ggplot(
 ) +
     scale_colour_viridis_d(guide = guide_legend(title = "--clipkit_gaps")) +
     scale_x_continuous(breaks = bin_breaks) +
-    facet_wrap(~align_method) +
+    facet_grid(align_method ~ as.factor(wscore)) +
     xlab("--min_coverage") +
-    ylab("Naïve tree score") +
     geom_point(shape = 16, size = 1, alpha = 0.8) +
     geom_path() +
     geom_point(
@@ -289,6 +158,7 @@ gp3 <- ggplot(
         shape = 1,
         size = 6,
     ) +
+    ylab("Naïve tree score") +
     geom_hline(
         yintercept = default_results$naive_tree_score,
         colour = "black",
@@ -296,10 +166,141 @@ gp3 <- ggplot(
         alpha = 0.5
     )
 
-ggsave("test/naive_metric.pdf",
-    gp3,
-    width = 10,
-    height = 7.5,
-    units = "in",
+ggsave("test/naive_tree_score.pdf",
+    naive_tree_score_plot,
+    width = 210,
+    height = 297,
+    units = "mm",
+    device = cairo_pdf
+)
+
+
+normalised_branch_length_plot <- ggplot(
+    all_metrics_with_params,
+    aes(
+        x = cov,
+        y = normalised_total_tree_length,
+        colour = as.factor(gap),
+        group = as.factor(gap)
+    )
+) +
+    scale_colour_viridis_d(guide = guide_legend(title = "--clipkit_gaps")) +
+    scale_x_continuous(breaks = bin_breaks) +
+    facet_grid(align_method ~ as.factor(wscore)) +
+    xlab("--min_coverage") +
+    geom_point(shape = 16, size = 1, alpha = 0.8) +
+    geom_path() +
+    geom_point(
+        data = default_results,
+        colour = "black",
+        shape = 1,
+        size = 6,
+    ) +
+    geom_point(
+        data = best_results,
+        colour = "red",
+        shape = 1,
+        size = 6,
+    ) +
+    ylab("Normalised total tree length") +
+    geom_hline(
+        yintercept = default_results$normalised_total_tree_length,
+        colour = "black",
+        linetype = "dashed",
+        alpha = 0.5
+    )
+
+ggsave("test/normalised_branch_length.pdf",
+    normalised_branch_length_plot,
+    width = 210,
+    height = 297,
+    units = "mm",
+    device = cairo_pdf
+)
+
+
+normalised_informative_site_plot <- ggplot(
+    all_metrics_with_params,
+    aes(
+        x = cov,
+        y = normalised_sum_of_informative_sites,
+        colour = as.factor(gap),
+        group = as.factor(gap)
+    )
+) +
+    scale_colour_viridis_d(guide = guide_legend(title = "--clipkit_gaps")) +
+    scale_x_continuous(breaks = bin_breaks) +
+    facet_grid(align_method ~ as.factor(wscore)) +
+    xlab("--min_coverage") +
+    geom_point(shape = 16, size = 1, alpha = 0.8) +
+    geom_path() +
+    geom_point(
+        data = default_results,
+        colour = "black",
+        shape = 1,
+        size = 6,
+    ) +
+    geom_point(
+        data = best_results,
+        colour = "red",
+        shape = 1,
+        size = 6,
+    ) +
+    ylab("Normalised sum of informative sites") +
+    geom_hline(
+        yintercept = default_results$normalised_sum_of_informative_sites,
+        colour = "black",
+        linetype = "dashed",
+        alpha = 0.5
+    )
+
+ggsave("test/normalised_sum_of_informative_sites.pdf",
+    normalised_informative_site_plot,
+    width = 210,
+    height = 297,
+    units = "mm",
+    device = cairo_pdf
+)
+
+gap_score_plot <- ggplot(
+    all_metrics_with_params,
+    aes(
+        x = cov,
+        y = MedianGapScore_median,
+        colour = as.factor(gap),
+        group = as.factor(gap)
+    )
+) +
+    scale_colour_viridis_d(guide = guide_legend(title = "--clipkit_gaps")) +
+    scale_x_continuous(breaks = bin_breaks) +
+    facet_grid(align_method ~ as.factor(wscore)) +
+    xlab("--min_coverage") +
+    geom_point(shape = 16, size = 1, alpha = 0.8) +
+    geom_path() +
+    geom_point(
+        data = default_results,
+        colour = "black",
+        shape = 1,
+        size = 6,
+    ) +
+    geom_point(
+        data = best_results,
+        colour = "red",
+        shape = 1,
+        size = 6,
+    ) +
+    ylab("Median of median gap score") +
+    geom_hline(
+        yintercept = default_results$MedianGapScore_median,
+        colour = "black",
+        linetype = "dashed",
+        alpha = 0.5
+    )
+
+ggsave("test/MedianGapScore_median.pdf",
+    gap_score_plot,
+    width = 210,
+    height = 297,
+    units = "mm",
     device = cairo_pdf
 )
