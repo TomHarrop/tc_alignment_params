@@ -50,10 +50,7 @@ ReadStatsFiles <- function(path, pattern) {
 # globals
 bin_breaks <- seq(0, 1, by = 0.1)
 
-# TODO! it's actually NUC.NT.mafft_auto.gap0.9.cov0.4 but we haven't run that
-# yet.
-default_param_string <- "NUC.NT.mafft_auto.gap0.8.cov0.4"
-
+default_param_string <- "NUC.NT.mafft_auto.gap0.9.cov0.4"
 
 # read the trimal stats
 trimal_stats <- ReadStatsFiles(
@@ -130,6 +127,7 @@ all_metrics_with_params[
 # the default results
 default_results <- all_metrics_with_params[param_string == default_param_string]
 best_results <- all_metrics_with_params[which.max(naive_tree_score)]
+all_metrics_with_params[naive_tree_score == best_results$naive_tree_score]
 
 # plots
 gp <- ggplot(
@@ -273,6 +271,7 @@ gp3 <- ggplot(
     )
 ) +
     scale_colour_viridis_d(guide = guide_legend(title = "--clipkit_gaps")) +
+    scale_x_continuous(breaks = bin_breaks) +
     facet_wrap(~align_method) +
     xlab("--min_coverage") +
     ylab("Naïve tree score") +

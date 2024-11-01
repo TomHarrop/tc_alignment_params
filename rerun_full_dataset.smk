@@ -282,7 +282,7 @@ rule target:
             [str(x) for x in rules.iqtree_target.input],
             marker="NUC",
             marker_format="NT",
-            align_method="muscle_super5",
+            align_method="muscle_align",
             clipkit_gap=0.4,
             min_coverage=0.8,
         ),

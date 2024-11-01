@@ -121,6 +121,7 @@ def main():
         logger.info(f"Writing {k} alignments to {output_tarfiles[k]}")
         shutil.move(v, output_tarfiles[k])
 
+    logger.info("Done")
 
 # testing
 # trimal_tarfile = Path("test", "trimal.tar")
