@@ -29,5 +29,4 @@ snakemake \
     --keep-going \
     --cores 64 \
     --local-cores 2 \
-    -s rerun_full_dataset.smk \
-    output/090_rerun-full-dataset/025_trimal-processed/NUC.NT.mafft_auto.gap0.9.cov0.4/kept.tar
+    -s rerun_full_dataset.smk
