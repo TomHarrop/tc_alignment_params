@@ -141,7 +141,6 @@ naive_tree_score_plot <- ggplot(
     )
 ) +
     scale_colour_viridis_d(guide = guide_legend(title = "--clipkit_gaps")) +
-    scale_x_continuous(breaks = bin_breaks) +
     facet_grid(align_method ~ as.factor(wscore)) +
     xlab("--min_coverage") +
     geom_point(shape = 16, size = 1, alpha = 0.8) +
@@ -185,7 +184,6 @@ normalised_branch_length_plot <- ggplot(
     )
 ) +
     scale_colour_viridis_d(guide = guide_legend(title = "--clipkit_gaps")) +
-    scale_x_continuous(breaks = bin_breaks) +
     facet_grid(align_method ~ as.factor(wscore)) +
     xlab("--min_coverage") +
     geom_point(shape = 16, size = 1, alpha = 0.8) +
@@ -229,7 +227,6 @@ normalised_informative_site_plot <- ggplot(
     )
 ) +
     scale_colour_viridis_d(guide = guide_legend(title = "--clipkit_gaps")) +
-    scale_x_continuous(breaks = bin_breaks) +
     facet_grid(align_method ~ as.factor(wscore)) +
     xlab("--min_coverage") +
     geom_point(shape = 16, size = 1, alpha = 0.8) +
@@ -272,7 +269,6 @@ gap_score_plot <- ggplot(
     )
 ) +
     scale_colour_viridis_d(guide = guide_legend(title = "--clipkit_gaps")) +
-    scale_x_continuous(breaks = bin_breaks) +
     facet_grid(align_method ~ as.factor(wscore)) +
     xlab("--min_coverage") +
     geom_point(shape = 16, size = 1, alpha = 0.8) +
