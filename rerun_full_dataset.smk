@@ -56,17 +56,22 @@ align_methods = [
     "muscle_super5",
 ]
 markers = ["NUC", "PTD", "MIT", "DNA", "CLR", "ALL"]
+sample_wscore_cutoffs = [
+    round(float(x), 1) for x in np.linspace(0, 0.6, num=4)
+]
 
 param_string = (
     "{marker}."
     "{marker_format}."
     "{align_method}."
     "gap{clipkit_gap}."
-    "cov{min_coverage}"
+    "cov{min_coverage}."
+    "wscore{sample_wscore_cutoff}"
 )
 
 # containers
 trimal = "docker://quay.io/biocontainers/trimal:1.5.0--h4ac6f70_0"
+r = "docker://ghcr.io/tomharrop/r-containers:r2u_24.04_cv1"
 
 # modules
 module_tag = "0.7.1"
@@ -115,9 +120,10 @@ use rule * from iqtree as iqtree_*
 
 use rule iqtree from iqtree as iqtree_iqtree with:
     resources:
-        mem_mb=int(32e3),
-        time=lambda wildcards, attempt: int(2880 * attempt),
-    threads: 48
+        mem_mb=int(384e3),
+        time="7-00",
+    threads: 64
+    retries: 0
 
 
 rule setup_iqtree_input:
@@ -223,6 +229,12 @@ rule trimal:
 rule captus_align:
     input:
         extraction_dir=Path(data, "03_extractions"),
+        discarded_samples=Path(
+            outdir,
+            "007_wscore-filtering",
+            "{marker}.wscore{sample_wscore_cutoff}",
+            "discarded_samples.txt",
+        ),
     output:
         tarfile=Path(outdir, "010_captus-align", param_string + ".tar"),
     log:
@@ -239,13 +251,18 @@ rule captus_align:
         )
     threads: lambda wildcards, attempt: 32 * attempt
     resources:
-        time=lambda wildcards, attempt: 240 * attempt,
+        time=lambda wildcards, attempt: 480 * attempt,
         mem_mb=lambda wildcards, attempt: int(16e3 * attempt),
     container:
         "docker://quay.io/biocontainers/captus:1.0.1--pyhdfd78af_2"
     shell:
         "tmp_indir=$(mktemp -d) && tmp_outdir=$(mktemp -d) ; "
         "cp -rL {input.extraction_dir} ${{tmp_indir}}/align_input ; "
+        "while read sample; do "
+        "if [ -d ${{tmp_indir}}/align_input/${{sample}}__captus-ext ]; then "
+        'rm -r "${{tmp_indir}}/align_input/${{sample}}__captus-ext" ; '
+        "fi ; "
+        "done < {input.discarded_samples} && "
         "captus_assembly align "
         "--captus_extractions_dir ${{tmp_indir}}/align_input "
         "--out ${{tmp_outdir}} "
@@ -260,6 +277,38 @@ rule captus_align:
         "tar -cvf {output.tarfile} --directory ${{tmp_outdir}} ."
 
 
+rule wscore_cutoffs:
+    input:
+        extraction_dir=Path(data, "03_extractions"),
+    output:
+        discarded_samples=Path(
+            outdir,
+            "007_wscore-filtering",
+            "{marker}.wscore{sample_wscore_cutoff}",
+            "discarded_samples.txt",
+        ),
+        discarded_loci=Path(
+            outdir,
+            "007_wscore-filtering",
+            "{marker}.wscore{sample_wscore_cutoff}",
+            "discarded_loci.txt",
+        ),
+    params:
+        stats_file=lambda wildcards, input: Path(
+            input.extraction_dir, "captus-assembly_extract.stats.tsv"
+        ),
+    log:
+        log=Path(
+            logdir,
+            "wscore_cutoffs",
+            "{marker}.wscore{sample_wscore_cutoff}" + ".log",
+        ),
+    container:
+        r
+    script:
+        "src/wscore_cutoffs.R"
+
+
 ###########
 # TARGETS #
 ###########
@@ -268,21 +317,19 @@ rule captus_align:
 rule target:
     default_target: True
     input:
-        # defaults
+        # defaults:
+        # NUC.NT.mafft_auto.gap0.9.cov0.4.wscore0.0
+        # good according to naive metric (before wscore cutoff):
+        # NUC.NT.muscle_align.gap0.8.cov0.8.wscore0.0
+        # best according to full param explore:
+        # NUC.NT.muscle_align.gap0.8.cov0.8.wscore0.4
         expand(
             [str(x) for x in rules.iqtree_target.input],
-            marker="NUC",
-            marker_format="NT",
-            align_method="mafft_auto",
-            clipkit_gap=0.9,
-            min_coverage=0.4,
-        ),
-        # good according to naive metric
-        expand(
-            [str(x) for x in rules.iqtree_target.input],
-            marker="NUC",
-            marker_format="NT",
-            align_method="muscle_align",
-            clipkit_gap=0.4,
-            min_coverage=0.8,
+            zip,
+            marker=["NUC", "NUC", "NUC"],
+            marker_format=["NT", "NT", "NT"],
+            align_method=["mafft_auto", "muscle_align", "muscle_align"],
+            clipkit_gap=[0.9, 0.8, 0.8],
+            min_coverage=[0.4, 0.8, 0.8],
+            sample_wscore_cutoff=[0.0, 0.0, 0.4],
         ),
