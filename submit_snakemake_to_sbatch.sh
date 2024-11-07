@@ -29,4 +29,5 @@ snakemake \
     --keep-going \
     --rerun-incomplete \
     --cores 64 \
-    --local-cores 2
+    --local-cores 2 \
+    output/033_iqtree-stats/NUC.NT.muscle_align.gap0.2.cov0.9.wscore0.2/branch_lengths.csv

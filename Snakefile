@@ -97,6 +97,7 @@ n_samples = 30
 # containers
 biopython = "docker://quay.io/biocontainers/biopython:1.81"
 captus = "docker://quay.io/biocontainers/captus:1.0.1--pyhdfd78af_2"
+ete3 = "docker://quay.io/biocontainers/ete3:3.1.1--py36_0"
 pandas = "docker://quay.io/biocontainers/pandas:2.2.1"
 r = "docker://ghcr.io/tomharrop/r-containers:r2u_24.04_cv1"
 trimal = "docker://quay.io/biocontainers/trimal:1.5.0--h4ac6f70_0"
@@ -120,6 +121,38 @@ wildcard_constraints:
     marker="|".join(markers),
     marker_format="|".join(formats),
     sample_wscore_cutoff="|".join(map(str, sample_wscore_cutoffs)),
+
+
+rule get_tip_length:
+    input:
+        treefile=Path(
+            outdir,
+            "030_iqtree",
+            param_string,
+            "tree.treefile",
+        ),
+    output:
+        branch_length_csv=Path(
+            outdir,
+            "033_iqtree-stats",
+            param_string,
+            "branch_lengths.csv",
+        ),
+    log:
+        Path(
+            logdir,
+            "get_tip_length",
+            param_string + ".log",
+        ),
+    resources:
+        time=lambda wildcards, attempt: 10 * attempt,
+    container:
+        ete3
+    shell:
+        "python3 src/get_tip_length.py "
+        "{input.treefile} "
+        "> {output.branch_length_csv} "
+        "2> {log}"
 
 
 rule parse_iqtree_file:
@@ -443,3 +476,4 @@ rule target:
         ruleio_expand(rules.iqtree_target.input),
         ruleio_expand(rules.parse_iqtree_file.output),
         ruleio_expand(rules.parse_trimal_stats.output),
+        ruleio_expand(rules.get_tip_length.output),
