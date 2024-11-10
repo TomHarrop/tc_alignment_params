@@ -70,8 +70,9 @@ param_string = (
 )
 
 # containers
-trimal = "docker://quay.io/biocontainers/trimal:1.5.0--h4ac6f70_0"
+ete3 = "docker://quay.io/biocontainers/ete3:3.1.1--py36_0"
 r = "docker://ghcr.io/tomharrop/r-containers:r2u_24.04_cv1"
+trimal = "docker://quay.io/biocontainers/trimal:1.5.0--h4ac6f70_0"
 
 # modules
 module_tag = "0.7.1"
@@ -95,6 +96,38 @@ wildcard_constraints:
     ),
     marker="|".join(markers),
     marker_format="|".join(["AA", "NT", "GE", "GF", "MA", "MF", "ALL"]),
+
+
+rule get_tip_length:
+    input:
+        treefile=Path(
+            outdir,
+            "030_iqtree",
+            param_string,
+            "tree.treefile",
+        ),
+    output:
+        branch_length_csv=Path(
+            outdir,
+            "033_iqtree-stats",
+            param_string,
+            "branch_lengths.csv",
+        ),
+    log:
+        Path(
+            logdir,
+            "get_tip_length",
+            param_string + ".log",
+        ),
+    resources:
+        time=lambda wildcards, attempt: 10 * attempt,
+    container:
+        ete3
+    shell:
+        "python3 src/get_tip_length.py "
+        "{input.treefile} "
+        "> {output.branch_length_csv} "
+        "2> {log}"
 
 
 module iqtree:
@@ -324,7 +357,11 @@ rule target:
         # best according to full param explore:
         # NUC.NT.muscle_align.gap0.8.cov0.8.wscore0.4
         expand(
-            [str(x) for x in rules.iqtree_target.input],
+            [
+                str(x)
+                for x in rules.iqtree_target.input
+                + rules.get_tip_length.output
+            ],
             zip,
             marker=["NUC", "NUC", "NUC"],
             marker_format=["NT", "NT", "NT"],
