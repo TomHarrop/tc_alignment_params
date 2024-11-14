@@ -1,6 +1,7 @@
 # tc-alignment-params
 
-Trying to tweak alignment and trimming params to generate better trees from target capture output.
+Trying to tweak alignment and trimming params to generate better trees from
+target capture output.
 
 ## Parameter exploration
 
@@ -41,9 +42,15 @@ snakemake combine_trimal_and_iqtree_stats
 The `combine_trimal_and_iqtree_stats` will always run with no input. The script
 finds stats files in the output directory and plots whatever is there.
 
+The black dashed line is the results from running with the default parameters.
+
+The result highlighed with a red circle is the "best" result, chosen by looking
+at the naïve tree score.
+
 ### Gap score
 
-The [gap score reported by `trimal`](https://trimal.readthedocs.io/en/latest/scores.html#gap-score).
+The [gap score reported by
+`trimal`](https://trimal.readthedocs.io/en/latest/scores.html#gap-score).
 
 ![`Trimal` gap score](assets/gap_score_plot.svg)
 
