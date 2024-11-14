@@ -18,15 +18,6 @@ marker type and the ['Coding sequences in
 nucleotides'](https://edgardomortiz.github.io/captus.docs/assembly/align/options/#-f---formats)
 format.
 
-Increasing the `sample_wscore_cutoff` is a way to remove poorly captured
-samples and doing this improved the trees. However, it discarded a lot of
-samples. Also, samples that are more divergent from the reference would be
-expected to have lower scores, so it is not a completely unbiased way to filter
-samples. The `sample_wscore_cutoffs` is based on Captus's
-[wscore](https://edgardomortiz.github.io/captus.docs/assembly/extract/output/#26-captus-assembly_extractstatstsv)
-metric (which correlates with total percentage of target nucleotides recovered
-for the sample).
-
 The parameter that made the biggest difference to the output was
 [`--min_coverage`](https://edgardomortiz.github.io/captus.docs/assembly/align/options/#--min_coverage).
 Increasing this caused the gap score of the final alignments to tend towards
@@ -37,6 +28,15 @@ Lowering the allowed gaps in each column by reducing
 [`--clipkit_gaps`](https://edgardomortiz.github.io/captus.docs/assembly/align/options/#--clipkit_gaps)
 had the same effect, but it is less drastic, particularly at higher values of
 `--min_coverage`.
+
+Increasing the `sample_wscore_cutoff` is a way to remove poorly captured
+samples and doing this improved the trees. However, it discarded a lot of
+samples. Also, samples that are more divergent from the reference would be
+expected to have lower scores, so it is not a completely unbiased way to filter
+samples. The `sample_wscore_cutoffs` is based on Captus's
+[wscore](https://edgardomortiz.github.io/captus.docs/assembly/extract/output/#26-captus-assembly_extractstatstsv)
+metric (which correlates with total percentage of target nucleotides recovered
+for the sample).
 
 Lastly, using the
 [`--align_method`](https://edgardomortiz.github.io/captus.docs/assembly/align/options/#--align_method)
