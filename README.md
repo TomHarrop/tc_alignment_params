@@ -23,7 +23,7 @@ format.
 [wscore](https://edgardomortiz.github.io/captus.docs/assembly/extract/output/#26-captus-assembly_extractstatstsv)
 metric. This metric correlates with total percentage of target nucleotides
 recovered for the sample. Increasing the cutoff is a way to remove poorly
-captured samples and it greatly improves the trees. However, it aggressively
+captured samples and doing this improves the trees. However, it aggressively
 discards samples, and samples that are more divergent from the reference will
 have lower scores, so it is not a completely unbiased way to filter samples.
 
