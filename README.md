@@ -9,7 +9,7 @@ trees were artificially long.
 It's probably caused by very gappy alignments output from Captus with the
 default settings.
 
-## TLDR
+## Summary
 
 ### This was done 30 samples from a single experiment. It needs to be tested on other data!
 
