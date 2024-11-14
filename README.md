@@ -11,8 +11,19 @@ default settings.
 
 ### TLDR
 
+**This is 30 samples from one dataset. It needs to be tested on other data!**
+
 The parameter that makes the biggest difference to the output is
+`--min_coverage`. Increasing this causes the gap score of the final alignments
+to tend towards 1.0 and the total branch length to reduce. However, also
+reduces the number of informative sites used to build the tree.
+
+Lowering the allowed gaps in each column by reducing `--clipkit_gaps` has the
+same effect but it is less drastic, particularly at higher values of
 `--min_coverage`.
+
+Lastly, using `muscle` instead of `mafft` for the alignments results in a
+slight improvement but it is much slower.
 
 ## Parameter exploration
 
