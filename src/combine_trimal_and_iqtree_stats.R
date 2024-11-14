@@ -1,5 +1,32 @@
 #!/usr/bin/env Rscript
 
+if (exists("snakemake")) {
+    log <- file(snakemake@log[["log"]], open = "wt")
+    sink(log, type = "message")
+    sink(log, append = TRUE, type = "output")
+
+    trimal_stats_path <- snakemake@params[["trimal_stats_path"]]
+    iqtree_stats_path <- snakemake@params[["iqtree_stats_path"]]
+
+    combined_stats_file <- snakemake@output[["combined_stats"]]
+
+    naive_tree_score_plot_file <- snakemake@output[["naive_tree_score_plot"]]
+    normalised_branch_length_plot_file <- snakemake@output[["normalised_branch_length_plot"]]
+    gap_score_plot_file <- snakemake@output[["gap_score_plot"]]
+    normalised_informative_site_plot_file <- snakemake@output[["normalised_informative_site_plot"]]
+} else {
+    trimal_stats_path <- "output/023_trimal-stats"
+    iqtree_stats_path <- "output/033_iqtree-stats"
+
+    combined_stats_file <- "test/combined_stats.csv"
+
+    naive_tree_score_plot_file <- "test/naive_tree_score.pdf"
+    normalised_branch_length_plot_file <- "test/normalised_branch_length.pdf"
+    gap_score_plot_file <- "test/MedianGapScore_median.pdf"
+    normalised_informative_site_plot_file <- "test/normalised_sum_of_informative_sites.pdf"
+}
+
+
 library(data.table)
 library(ggplot2)
 
@@ -8,6 +35,16 @@ FileNameToParamString <- function(x) {
         unlist(
             strsplit(x, "/", fixed = TRUE)
         )[[3]]
+    )
+}
+
+GgsavePlot <- function(plot_name, plot_filename) {
+    ggsave(plot_filename,
+        plot_name,
+        width = 210,
+        height = 297,
+        units = "mm",
+        device = cairo_pdf
     )
 }
 
@@ -27,7 +64,6 @@ ParseParamString <- function(x) {
         )
     )
 }
-
 
 ReadStatsFiles <- function(path, pattern) {
     stats_files <- list.files(
@@ -51,22 +87,21 @@ ReadStatsFiles <- function(path, pattern) {
 
 # globals
 bin_breaks <- seq(0, 1, by = 0.1)
-
 default_param_string <- "NUC.NT.mafft_auto.gap0.9.cov0.4.wscore0.0"
 
 # read the trimal stats
 trimal_stats <- ReadStatsFiles(
-    "output/023_trimal-stats",
+    trimal_stats_path,
     "stats.csv"
 )
 
 # read the iqtree stats
 site_info_stats <- ReadStatsFiles(
-    "output/033_iqtree-stats",
+    iqtree_stats_path,
     "site_info.csv"
 )
 iqtree_metrics <- ReadStatsFiles(
-    "output/033_iqtree-stats",
+    iqtree_stats_path,
     "metrics.csv"
 )
 
@@ -79,7 +114,7 @@ per_locus_stats <- merge(
     all = TRUE
 )
 
-per_locus_stats[locus == "4471" & param_string == "NUC.NT.muscle_super5.gap0.8.cov0.0", ]
+# per_locus_stats[locus == "4471" & param_string == "NUC.NT.muscle_super5.gap0.8.cov0.0", ]
 
 # Summarise the per-site statistics. There are lots more, check the individual
 # stats files.
@@ -128,7 +163,14 @@ all_metrics_with_params[
 # the default results
 default_results <- all_metrics_with_params[param_string == default_param_string]
 best_results <- all_metrics_with_params[which.max(naive_tree_score)]
-all_metrics_with_params[naive_tree_score == best_results$naive_tree_score]
+best_results_message <- all_metrics_with_params[
+    naive_tree_score == best_results$naive_tree_score
+]
+
+message("best_results")
+message(
+    print(best_results_message)
+)
 
 # plots
 naive_tree_score_plot <- ggplot(
@@ -165,15 +207,6 @@ naive_tree_score_plot <- ggplot(
         alpha = 0.5
     )
 
-ggsave("test/naive_tree_score.pdf",
-    naive_tree_score_plot,
-    width = 210,
-    height = 297,
-    units = "mm",
-    device = cairo_pdf
-)
-
-
 normalised_branch_length_plot <- ggplot(
     all_metrics_with_params,
     aes(
@@ -207,15 +240,6 @@ normalised_branch_length_plot <- ggplot(
         linetype = "dashed",
         alpha = 0.5
     )
-
-ggsave("test/normalised_branch_length.pdf",
-    normalised_branch_length_plot,
-    width = 210,
-    height = 297,
-    units = "mm",
-    device = cairo_pdf
-)
-
 
 normalised_informative_site_plot <- ggplot(
     all_metrics_with_params,
@@ -251,13 +275,6 @@ normalised_informative_site_plot <- ggplot(
         alpha = 0.5
     )
 
-ggsave("test/normalised_sum_of_informative_sites.pdf",
-    normalised_informative_site_plot,
-    width = 210,
-    height = 297,
-    units = "mm",
-    device = cairo_pdf
-)
 
 gap_score_plot <- ggplot(
     all_metrics_with_params,
@@ -293,10 +310,28 @@ gap_score_plot <- ggplot(
         alpha = 0.5
     )
 
-ggsave("test/MedianGapScore_median.pdf",
-    gap_score_plot,
-    width = 210,
-    height = 297,
-    units = "mm",
-    device = cairo_pdf
+
+# output
+fwrite(
+    all_metrics_with_params,
+    combined_stats_file
 )
+
+GgsavePlot(
+    naive_tree_score_plot,
+    naive_tree_score_plot_file
+)
+GgsavePlot(
+    normalised_branch_length_plot,
+    normalised_branch_length_plot_file
+)
+GgsavePlot(
+    gap_score_plot,
+    gap_score_plot_file
+)
+GgsavePlot(
+    normalised_informative_site_plot,
+    normalised_informative_site_plot_file
+)
+
+sessionInfo()

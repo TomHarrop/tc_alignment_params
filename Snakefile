@@ -470,6 +470,51 @@ rule set_up_selected_samples:
 ###########
 
 
+# Aggregate plots. Run this after the workflow finishes. There is no input for
+# this rule, because some parameter combinations fail. The script lists files
+# in the directories and plots whatever is there.
+rule combine_trimal_and_iqtree_stats:
+    output:
+        combined_stats=Path(
+            outdir,
+            "035_combined-stats",
+            "combined_stats.csv",
+        ),
+        naive_tree_score_plot=Path(
+            outdir,
+            "035_combined-stats",
+            "naive_tree_score_plot.pdf",
+        ),
+        normalised_branch_length_plot=Path(
+            outdir,
+            "035_combined-stats",
+            "normalised_branch_length_plot.pdf",
+        ),
+        gap_score_plot=Path(
+            outdir,
+            "035_combined-stats",
+            "gap_score_plot.pdf",
+        ),
+        normalised_informative_site_plot=Path(
+            outdir,
+            "035_combined-stats",
+            "normalised_informative_site_plot.pdf",
+        ),
+    params:
+        trimal_stats_path=Path(outdir, "023_trimal-stats"),
+        iqtree_stats_path=Path(outdir, "033_iqtree-stats"),
+    log:
+        log=Path(
+            logdir,
+            "combine_trimal_and_iqtree_stats.log",
+        ),
+    container:
+        r
+    script:
+        "src/combine_trimal_and_iqtree_stats.R"
+
+
+# actual targets
 rule target:
     default_target: True
     input:

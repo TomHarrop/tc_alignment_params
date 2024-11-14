@@ -6,7 +6,12 @@ library(ggplot2)
 
 this_marker_type <- "NUC"
 stats_file <- "data/03_extractions/captus-assembly_extract.stats.tsv"
-branch_length_file <- "output/033_iqtree-stats/NUC.NT.muscle_align.gap0.2.cov0.9.wscore0.2/branch_lengths.csv"
+# better
+branch_length_file <- "output/090_rerun-full-dataset/033_iqtree-stats/NUC.NT.muscle_align.gap0.8.cov0.8.wscore0.0/branch_lengths.csv"
+# defaults
+branch_length_file <- "output/090_rerun-full-dataset/033_iqtree-stats/NUC.NT.mafft_auto.gap0.9.cov0.4.wscore0.0/branch_lengths.csv"
+
+
 
 branch_lengths <- fread(branch_length_file)
 
@@ -69,7 +74,7 @@ ggplot(pd, aes(y = terminal_branch_length, x = median_wscore)) +
     geom_point() +
     geom_line(
         mapping = aes(y = fit),
-        data = pred,
+        data = pred1,
         colour = "red"
     ) +
     labs(
