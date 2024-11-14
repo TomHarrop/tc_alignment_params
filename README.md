@@ -9,7 +9,9 @@ trees were artificially long.
 It's probably caused by very gappy alignments output from Captus with the
 default settings.
 
-### TLDR: This was done 30 samples from a single experiment. It needs to be tested on other data!
+## TLDR
+
+### This was done 30 samples from a single experiment. It needs to be tested on other data!
 
 The parameter that made the biggest difference to the output was
 `--min_coverage`. Increasing this caused the gap score of the final alignments
