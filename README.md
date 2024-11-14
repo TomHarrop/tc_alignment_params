@@ -32,7 +32,7 @@ All combinations are attempted (approx 3200), although some will fail.
 
 ## View the results
 
-After running the full Snakefile, run 
+After running the full Snakefile, run
 
 ```
 snakemake combine_trimal_and_iqtree_stats
@@ -40,6 +40,12 @@ snakemake combine_trimal_and_iqtree_stats
 
 The `combine_trimal_and_iqtree_stats` will always run with no input. The script
 finds stats files in the output directory and plots whatever is there.
+
+### Gap score
+
+The [gap score reported by `trimal`](https://trimal.readthedocs.io/en/latest/scores.html#gap-score).
+
+![`Trimal` gap score](assets/gap_score_plot.svg)
 
 ### Naïve tree score
 
