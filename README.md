@@ -76,8 +76,8 @@ script finds stats files in the output directory and plots whatever is there.
 
 The black dashed line is the results from running with the default parameters.
 
-The result highlighed with a red circle is the "best" result, chosen by looking
-at the naïve tree score.
+The result highlighed with a red circle is the set of of parameters that
+resulted in the highest tree score.
 
 ### Gap score
 
