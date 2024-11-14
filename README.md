@@ -11,9 +11,8 @@ default settings.
 
 ## Summary
 
-### This was done 30 samples from a single experiment. It needs to be tested on other data
-
-It was only run with the ['Nuclear
+**This was done 30 samples from a single experiment. It needs to be tested on
+other data**. It was only run with the ['Nuclear
 proteins'](https://edgardomortiz.github.io/captus.docs/assembly/align/options/#-m---markers)
 marker type and the ['Coding sequences in
 nucleotides'](https://edgardomortiz.github.io/captus.docs/assembly/align/options/#-f---formats)
