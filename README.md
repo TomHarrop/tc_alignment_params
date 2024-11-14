@@ -1,7 +1,19 @@
 # tc-alignment-params
 
-Trying to tweak alignment and trimming params to generate better trees from
-target capture output.
+This is an attempt to tweak alignment and trimming params to generate better
+trees from target capture output.
+
+The phylogenetics experts in the team found the terminal branch lengths of the
+trees were artificially long.
+
+It's probably caused by very gappy alignments output from Captus with the
+default settings.
+
+### TLDR
+
+The parameter that makes the biggest difference to the output is
+`--min_coverage`.
+
 
 ## Parameter exploration
 
