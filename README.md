@@ -52,7 +52,7 @@ all_metrics_with_params[
 ]
 ```
 
-![naive_tree_score_plot](assets/naive_tree_score_plot.pdf)
+![naive_tree_score_plot](assets/naive_tree_score_plot.eps)
 
 ## Workflow
 
