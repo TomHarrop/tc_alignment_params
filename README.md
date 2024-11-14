@@ -54,9 +54,23 @@ The [gap score reported by
 
 ![`Trimal` gap score](assets/gap_score_plot.svg)
 
+### Branch length
+
+The total branch, reported by `IQTree` as "Total tree length (sum of branch
+lengths)".
+
+![Normalised total branch length](assets/normalised_branch_length_plot.svg)
+
+### Informative sites
+
+The sum of informative sites, reported by `IQTree` as "Infor".
+
+![Normalised sum of informative
+sites](assets/normalised_informative_site_plot.svg)
+
 ### Naïve tree score
 
-This is a weighed combination of the previous parameters:
+This is a weighted combination of the previous parameters:
 
 ```R
 all_metrics_with_params[
