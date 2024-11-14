@@ -13,6 +13,11 @@ default settings.
 
 ### This was done 30 samples from a single experiment. It needs to be tested on other data!
 
+It was only run with the [Nuclear proteins marker
+type](https://edgardomortiz.github.io/captus.docs/assembly/align/options/#-m---markers)
+and the [Coding sequences in nucleotides
+format](https://edgardomortiz.github.io/captus.docs/assembly/align/options/#-f---formats).
+
 The parameter that made the biggest difference to the output was
 [`--min_coverage`](https://edgardomortiz.github.io/captus.docs/assembly/align/options/#--min_coverage).
 Increasing this caused the gap score of the final alignments to tend towards
