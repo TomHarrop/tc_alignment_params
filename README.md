@@ -9,18 +9,18 @@ trees were artificially long.
 It's probably caused by very gappy alignments output from Captus with the
 default settings.
 
-### TLDR: This is 30 samples from one dataset. It needs to be tested on other data!
+### TLDR: This was done 30 samples from a single experiment. It needs to be tested on other data!
 
-The parameter that makes the biggest difference to the output is
-`--min_coverage`. Increasing this causes the gap score of the final alignments
-to tend towards 1.0 and the total branch length to reduce. However, also
-reduces the number of informative sites used to build the tree.
+The parameter that made the biggest difference to the output was
+`--min_coverage`. Increasing this caused the gap score of the final alignments
+to tend towards 1.0 and the total branch length to reduce. However, it also
+reduced the number of informative sites used to build the tree.
 
-Lowering the allowed gaps in each column by reducing `--clipkit_gaps` has the
-same effect but it is less drastic, particularly at higher values of
+Lowering the allowed gaps in each column by reducing `--clipkit_gaps` had the
+same effect, but it is less drastic, particularly at higher values of
 `--min_coverage`.
 
-Lastly, using `muscle` instead of `mafft` for the alignments results in a
+Lastly, using `muscle` instead of `mafft` for the alignments resulted in a
 slight improvement but it is much slower.
 
 ## Parameter exploration
