@@ -43,4 +43,4 @@ finds stats files in the output directory and plots whatever is there.
 
 ## Workflow
 
-![snakemake --rulegraph](assets/graph.svg)
+![](assets/graph.svg)
