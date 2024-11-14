@@ -41,6 +41,19 @@ snakemake combine_trimal_and_iqtree_stats
 The `combine_trimal_and_iqtree_stats` will always run with no input. The script
 finds stats files in the output directory and plots whatever is there.
 
+### Naïve tree score
+
+This is a weighed combination of the previous parameters:
+
+```R
+all_metrics_with_params[
+    ,
+    naive_tree_score := ((2 * MedianGapScore_median) + normalised_sum_of_informative_sites - (2 * normalised_total_tree_length)) / 5
+]
+```
+
+![naive_tree_score_plot](assets/naive_tree_score_plot.pdf)
+
 ## Workflow
 
-![](assets/graph.svg)
+![`snakemake --rulegraph`](assets/graph.svg)
