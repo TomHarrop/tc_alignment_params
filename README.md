@@ -1,4 +1,4 @@
-# tc-alignment-params
+# tc_alignment_params
 
 This is an attempt to tweak alignment and trimming params to generate better
 trees from target capture output.
@@ -14,11 +14,10 @@ default settings.
 The parameter that makes the biggest difference to the output is
 `--min_coverage`.
 
-
 ## Parameter exploration
 
-Runs `captus_align` followed by trimal and iqtree using the following set of
-parameters:
+The Snakefile runs `captus_align` followed by trimal and iqtree using the
+following set of parameters:
 
 ```python
 # Params
@@ -51,8 +50,8 @@ After running the full Snakefile, run
 snakemake combine_trimal_and_iqtree_stats
 ```
 
-The `combine_trimal_and_iqtree_stats` will always run with no input. The script
-finds stats files in the output directory and plots whatever is there.
+The `combine_trimal_and_iqtree_stats` target will always run with no input. The
+script finds stats files in the output directory and plots whatever is there.
 
 The black dashed line is the results from running with the default parameters.
 
