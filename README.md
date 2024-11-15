@@ -131,13 +131,16 @@ clearly not homologous.
 
 ### Some ideas on how to address this:
 
+- Use the sum of tip lengths rather than the total branch length in the naïve
+  tree score.
 - Look again for alignment processing algorithms that can remove or trim bad
   sequences.
 - Use a simple statistical approach, e.g. take the distance of each sequence
   from the consensus sequence, and discard any outlier sequences. (This is easy
   with BioPython.)
     - Using a sliding window might help retain some signal.
-- Machine learning? We can tell by looking when the alignment is 
+- Machine learning? We can tell by looking when the alignment is not right (see
+  above).
 
 ## Workflow
 
