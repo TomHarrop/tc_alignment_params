@@ -129,7 +129,7 @@ clearly not homologous.
 
 ![A bad alignment](assets/Screenshot%20from%202024-11-15%2015-13-25.png)
 
-### Some ideas on how to address this:
+### Some ideas on how to address this
 
 - Use the sum of tip lengths rather than the total branch length in the naïve
   tree score.
@@ -138,9 +138,9 @@ clearly not homologous.
 - Use a simple statistical approach, e.g. take the distance of each sequence
   from the consensus sequence, and discard any outlier sequences. (This is easy
   with BioPython.)
-    - Using a sliding window might help retain some signal.
-- Machine learning? We can tell by looking when the alignment is not right (see
-  above).
+  - Using a sliding window might help retain some signal.
+- Machine learning? We can tell straight away when the alignment is not right
+  (see above), could we train a model to do it...?
 
 ## Workflow
 
