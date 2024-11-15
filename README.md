@@ -121,6 +121,13 @@ all_metrics_with_params[
 
 ![naive_tree_score_plot](assets/naive_tree_score_plot.svg)
 
+## What still needs to be done?
+
+Although the trees are better, there are still problems with some of the
+alignmments.
+
+![A bad alignment](assets/Screenshot%20from%202024-11-15%2015-13-25.png)
+
 ## Workflow
 
 ![`snakemake --rulegraph`](assets/graph.svg)
