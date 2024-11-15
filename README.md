@@ -124,7 +124,8 @@ all_metrics_with_params[
 ## What still needs to be done?
 
 Although the trees are better, there are still problems with some of the
-alignmments.
+alignments. In the following alignment, the 5′ region of the second sequence is
+clearly not homologous.
 
 ![A bad alignment](assets/Screenshot%20from%202024-11-15%2015-13-25.png)
 
